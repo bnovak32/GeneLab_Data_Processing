@@ -1,0 +1,6 @@
+[submodule "Amplicon/Illumina/Workflow_Documentation/NF_AmpIllumina"]
+	path = Amplicon/Illumina/Workflow_Documentation/NF_AmpIllumina
+	url = git@github.com:asaravia-butler/GL_Amplicon_Seq_WF.git
+[submodule "Amplicon/Illumina/Workflow_Documentation/NF_AmpIllumina-C"]
+	path = Amplicon/Illumina/Workflow_Documentation/NF_AmpIllumina-C
+	url = git@github.com:asaravia-butler/GL_Amplicon_Seq_WF.git
