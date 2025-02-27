@@ -111,7 +111,7 @@ DESeq2 Analysis Workflow
   - [**4. Align Reads to Reference Genome then Sort and Index**](#4-align-reads-to-reference-genome-then-sort-and-index)
     - [4a. Align Reads to Reference Genome with STAR](#4a-align-reads-to-reference-genome-with-star)
     - [4b. Compile Alignment Logs](#4b-compile-alignment-logs)
-    - [4c. Tablulate STAR Counts in R](#4c-tablulate-star-counts-in-r)
+    - [4c. Tabulate STAR Counts in R](#4c-tabulate-star-counts-in-r)
     - [4d. Sort Aligned Reads](#4d-sort-aligned-reads)
     - [4e. Index Sorted Aligned Reads](#4e-index-sorted-aligned-reads)
   - [**5. Create Reference BED File**](#5-create-reference-bed-file)
@@ -504,7 +504,7 @@ zip -r align_multiqc_GLbulkRNAseq_report.zip /path/to/align_multiqc/output/align
 
 <br>
 
-### 4c. Tablulate STAR Counts in R
+### 4c. Tabulate STAR Counts in R
 
 ```R
 print("Make STAR counts table")
