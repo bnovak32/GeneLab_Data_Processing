@@ -13,7 +13,7 @@ The current GeneLab RNAseq consensus processing pipeline (RCP), [GL-DPPD-7101-F]
 - **Click image to expand**
 
 <p align="center">
-<a href="../../images/NF_RCP-F_rnaseq_workflow.png"><img src="../../images/NF_RCP-F_rnaseq_workflow.png"></a>
+<a href="../../images/NF_RCP-F_rnaseq_workflow.png"><img src="../../images/RNAseq_euk_wg_diagram.png"></a>
 </p>
 
 ---
