@@ -135,12 +135,14 @@ Barbara Novak (GeneLab Data Processing Lead)
 |Program|Version|Relevant Links|
 |:------|:-----:|------:|
 |bbduk| 38.86 |[https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/)|
+|bit| 1.8.53 |[https://github.com/AstrobioMike/bioinf_tools#bioinformatics-tools-bit](https://github.com/AstrobioMike/bioinf_tools#bioinformatics-tools-bit)|
 |CAT| 5.2.3 |[https://github.com/dutilh/CAT#cat-and-bat](https://github.com/dutilh/CAT#cat-and-bat)|
 |CheckM| 1.1.3 |[https://github.com/Ecogenomics/CheckM](https://github.com/Ecogenomics/CheckM)|
 |Dorado| 1.1.1| [https://github.com/nanoporetech/dorado](https://github.com/nanoporetech/dorado)|
 |filtlong| 0.2.1 |[https://github.com/rrwick/Filtlong](https://github.com/rrwick/Filtlong)|
 |Flye| 2.9.5 | [https://github.com/mikolmogorov/Flye](https://github.com/mikolmogorov/Flye) |
 |GTDB-Tk| 2.4.0 |[https://github.com/Ecogenomics/GTDBTk](https://github.com/Ecogenomics/GTDBTk)|
+|HUMAnN| 3.9 |[https://github.com/biobakery/humann](https://github.com/biobakery/humann)|
 |Kaiju| 1.10.1 | [https://bioinformatics-centre.github.io/kaiju/](https://bioinformatics-centre.github.io/kaiju/) |
 |KEGG-Decoder| 1.2.2 |[https://github.com/bjtully/BioData/tree/master/KEGGDecoder#kegg-decoder](https://github.com/bjtully/BioData/tree/master/KEGGDecoder#kegg-decoder)
 |KOFamScan| 1.3.0 |[https://github.com/takaram/kofam_scan](https://github.com/takaram/kofam_scan)|
@@ -148,13 +150,14 @@ Barbara Novak (GeneLab Data Processing Lead)
 |KrakenTools | 1.2 | [https://ccb.jhu.edu/software/krakentools/](https://ccb.jhu.edu/software/krakentools/) |
 |Krona| 2.8.1 | [https://github.com/marbl/Krona/wiki](https://github.com/marbl/Krona/wiki)|
 |MetaBAT| 2.15 |[https://bitbucket.org/berkeleylab/metabat/src/master/](https://bitbucket.org/berkeleylab/metabat/src/master/)|
-|Minimap2| 2.2.8 | [https://github.com/lh3/minimap2](https://github.com/lh3/minimap2) |
+|Minimap2| 2.28 | [https://github.com/lh3/minimap2](https://github.com/lh3/minimap2) |
 |MultiQC| 1.27.1 |[https://multiqc.info/](https://multiqc.info/)|
-|Medaka| 2.0.1 | [https://github.com/nanoporetech/medaka](https://github.com/nanoporetech/medaka) |
+|Medaka| 2.1.1 | [https://github.com/nanoporetech/medaka](https://github.com/nanoporetech/medaka) |
+|MetaPhlAn| 4.1.0 |[https://github.com/biobakery/MetaPhlAn](https://github.com/biobakery/MetaPhlAn)|
 |NanoPlot| 1.44.1 | [https://github.com/wdecoster/NanoPlot](https://github.com/wdecoster/NanoPlot)|
 |Porechop| 0.2.4 | [https://github.com/rrwick/Porechop](https://github.com/rrwick/Porechop) |
 |Prodigal| 2.6.3 |[https://github.com/hyattpd/Prodigal#prodigal](https://github.com/hyattpd/Prodigal#prodigal)|
-|samtools| 1.20 |[https://github.com/samtools/samtools#samtools](https://github.com/samtools/samtools#samtools)|
+|samtools| 1.22.1 |[https://github.com/samtools/samtools#samtools](https://github.com/samtools/samtools#samtools)|
 | R | 4.5.1 | [https://www.r-project.org](https://www.r-project.org) |
 |Bioconductor | 3.21 | [https://www.bioconductor.org](https://www.bioconductor.org) |
 |decontam| 1.28.0 | [https://www.bioconductor.org/packages/release/bioc/html/decontam.html](https://www.bioconductor.org/packages/release/bioc/html/decontam.html) |
@@ -184,7 +187,7 @@ dorado basecaller ${model} ${input_directory} \
   --device auto \
   --recursive \
   --kit-name ${kit_name} \
-  --min-qscore 7 > basecalled.bam
+  --min-qscore 8 > basecalled.bam
 ```
 
 **Parameter Definitions:**
@@ -195,7 +198,7 @@ dorado basecaller ${model} ${input_directory} \
 - `--device` - Specifies CPU or GPU device; specifying 'auto' chooses either 'cpu' or 'gpu' depending on detected presence of a GPU device.
 - `--recursive` - Enables recursive scanning through input directory to load FAST5 and/or POD5 files.
 - `--kit-name` - The nanopore barcoding kit used during sequencing preparation. Enables barcoding with the provided kit name; see [dorado documentation](https://software-docs.nanoporetech.com/dorado/1.1.1/barcoding/barcoding/) for a full list of accepted kit names.
-- `--min-qscore` - Specifies the minimum Q-score, reads with a mean Q-score below this threshold are discarded (default to `7` for this pipeline).
+- `--min-qscore` - Specifies the minimum Q-score, reads with a mean Q-score below this threshold are discarded (default to `8` for this pipeline).
 
 **Input Data:**
 
@@ -316,7 +319,7 @@ NanoPlot --only-report \
 ```bash 
 multiqc --zip-data-dir \
         --outdir raw_multiqc_report \
-        --filename raw_multiqc \
+        --filename raw_multiqc_GLlbnMetag \
         --interactive \
         /path/to/raw_nanoplot_output/
 ```
@@ -335,8 +338,8 @@ multiqc --zip-data-dir \
 
 **Output Data:**
 
-- **raw_multiqc.html** (multiqc output html summary)
-- **raw_multiqc_data.zip** (zip archive containing multiqc output data)
+- **raw_multiqc_GLlbnMetag.html** (multiqc output html summary)
+- **raw_multiqc_GLlbnMetag_data.zip** (zip archive containing multiqc output data)
 
 <br>  
 
@@ -401,7 +404,7 @@ NanoPlot --only-report \
 ```bash
 multiqc  --zip-data-dir \ 
          --outdir filtered_multiqc_report \
-         --filename filtered_multiqc \
+         --filename filtered_multiqc_GLlbnMetag \
          --interactive \
          /path/to/filtered_nanoplot_output/
 ```
@@ -420,8 +423,8 @@ multiqc  --zip-data-dir \
 
 **Output Data:**
 
-- **filtered_multiqc_report/filtered_multiqc.html** (multiqc output html summary)
-- **filtered_multiqc_report/filtered_multiqc_data.zip** (zip archive containing multiqc output data)
+- **filtered_multiqc_report/filtered_multiqc_GLlbnMetag.html** (multiqc output html summary)
+- **filtered_multiqc_report/filtered_multiqc_GLlbnMetag_data.zip** (zip archive containing multiqc output data)
 
 <br>
 
@@ -490,7 +493,7 @@ NanoPlot --only-report \
 ```bash
 multiqc --zip-data-dir \ 
         --outdir trimmed_multiqc_report \
-        --filename trimmed_multiqc \
+        --filename trimmed_multiqc_GLlbnMetag \
         --interactive \
         /path/to/trimmed_nanoplot_output/
 ```
@@ -509,8 +512,8 @@ multiqc --zip-data-dir \
 
 **Output Data:**
 
-- **trimmed_multiqc.html** (multiqc output html summary)
-- **trimmed_multiqc_data.zip** (zip archive containing multiqc output data)
+- **trimmed_multiqc_GLlbnMetag.html** (multiqc output html summary)
+- **trimmed_multiqc_GLlbnMetag_data.zip** (zip archive containing multiqc output data)
 
 <br>
 
@@ -716,7 +719,7 @@ NanoPlot --only-report \
 ```bash
 multiqc --zip-data-dir \ 
         --outdir decontam_multiqc_report \
-        --filename decontam_multiqc \
+        --filename decontam_multiqc_GLlbnMetag \
         --interactive \
         /path/to/decontam_nanoplot_output/
 ```
@@ -735,8 +738,8 @@ multiqc --zip-data-dir \
 
 **Output Data:**
 
-- **decontam_multiqc.html** (multiqc output html summary)
-- **decontam_multiqc_data.zip** (zip archive containing multiqc output data)
+- **decontam_multiqc_GLlbnMetag.html** (multiqc output html summary)
+- **decontam_multiqc_GLlbnMetag_data.zip** (zip archive containing multiqc output data)
 
 <br>
 
@@ -827,7 +830,7 @@ sed -i -E 's/^([a-z0-9])/>\1/g' sample_HRrm.fasta | gzip
 ```bash
 multiqc --zip-data-dir \ 
         --outdir HRrm_multiqc_report \
-        --filename HRrm_multiqc \
+        --filename HRrm_multiqc_GLlbnMetag \
         --interactive \
         /path/to/*kraken2-report.tsv
 ```
@@ -846,8 +849,8 @@ multiqc --zip-data-dir \
 
 **Output Data:**
 
-- **HRrm_multiqc.html** (multiqc output html summary)
-- **HRrm_multiqc_data.zip** (zip archive containing multiqc output data)
+- **HRrm_multiqc_GLlbnMetag.html** (multiqc output html summary)
+- **HRrm_multiqc_GLlbnMetag_data.zip** (zip archive containing multiqc output data)
 
 <br>
 
@@ -1947,7 +1950,7 @@ combine_kreports.py --output merged-kraken2-table.tsv \
 ```bash
 multiqc --zip-data-dir \ 
         --outdir kraken2_multiqc_report \
-        --filename kraken2_multiqc \
+        --filename kraken2_multiqc_GLlbnMetag \
         --interactive \
         /path/to/*kraken2-report.tsv
 ```
@@ -1966,8 +1969,8 @@ multiqc --zip-data-dir \
 
 **Output Data:**
 
-- **kraken2_multiqc.html** (multiqc output html summary)
-- **kraken2_multiqc_data.zip** (zip archive containing multiqc output data)
+- **kraken2_multiqc_GLlbnMetag.html** (multiqc output html summary)
+- **kraken2_multiqc_GLlbnMetag_data.zip** (zip archive containing multiqc output data)
 
 
 #### 10d. Convert Kraken2 Output to Krona Format
@@ -2354,7 +2357,7 @@ bit-rename-fasta-headers -i sample_polished.fasta \
 #### 13b. Summarize Assemblies
 
 ```bash
-bit-summarize-assembly -o assembly-summaries_GLmetagenomics.tsv \
+bit-summarize-assembly -o assembly-summaries_GLlbnMetag.tsv \
                        *-assembly.fasta
 ```
 
@@ -2369,7 +2372,7 @@ bit-summarize-assembly -o assembly-summaries_GLmetagenomics.tsv \
 
 **Output files:**
 
-- **assembly-summaries_GLmetagenomics.tsv** (table of assembly summary statistics)
+- **assembly-summaries_GLlbnMetag.tsv** (table of assembly summary statistics)
 
 <br>
 
@@ -2916,10 +2919,10 @@ bit-GL-combine-KO-and-tax-tables *-gene-coverage-annotation-and-tax.tsv \
 
 **Output Data:**
 
-- **Combined-gene-level-KO-function-coverages-CPM_GLmetagenomics.tsv** (table with all samples combined based on KO annotations; normalized to coverage per million genes covered)
-- **Combined-gene-level-taxonomy-coverages-CPM_GLmetagenomics.tsv** (table with all samples combined based on gene-level taxonomic classifications; normalized to coverage per million genes covered)
-- **Combined-gene-level-KO-function-coverages_GLmetagenomics.tsv** (table with all samples combined based on KO annotations)
-- **Combined-gene-level-taxonomy-coverages_GLmetagenomics.tsv** (table with all samples combined based on gene-level taxonomic classifications)
+- **Combined-gene-level-KO-function-coverages-CPM_GLlbnMetag.tsv** (table with all samples combined based on KO annotations; normalized to coverage per million genes covered)
+- **Combined-gene-level-taxonomy-coverages-CPM_GLlbnMetag.tsv** (table with all samples combined based on gene-level taxonomic classifications; normalized to coverage per million genes covered)
+- **Combined-gene-level-KO-function-coverages_GLlbnMetag.tsv** (table with all samples combined based on KO annotations)
+- **Combined-gene-level-taxonomy-coverages_GLlbnMetag.tsv** (table with all samples combined based on gene-level taxonomic classifications)
 
 
 #### 21b. Gene-level taxonomy heatmaps --- START NEEDS REVIEW ---
@@ -2931,9 +2934,9 @@ library(pheatmap)
 # Abundant taxa with CPM > 1000
 abundance_threshold <- 1000
 
-sample_order <- get_sample_names("assembly-summaries_GLmetagenomics.tsv")
+sample_order <- get_sample_names("assembly-summaries_GLlbnMetag.tsv")
 # Read-in gene table
-gene_taxonomy_table <-  read_contig_table("Combined-gene-level-taxonomy-coverages-CPM_GLmetagenomics.tsv", sample_order)
+gene_taxonomy_table <-  read_contig_table("Combined-gene-level-taxonomy-coverages-CPM_GLlbnMetag.tsv", sample_order)
 
 # Summarize gene table
 species_gene_table <- gene_taxonomy_table %>%
@@ -2955,7 +2958,7 @@ gene.m <- gene.m[,-match("species", colnames(gene.m))] %>% as.matrix()
 # Drop unclassified assignments
 mat2plot <- gene.m[-match("Unclassified;_;_;_;_;_;_", rownames(gene.m)),]
 
-png(filename = "All-genes-taxonomy-heatmap_GLmetagenomics.png", 
+png(filename = "All-genes-taxonomy-heatmap_GLlbnMetag.png", 
     width = plot_width, height = plot_height, units = "in", res=300)
 pheatmap(mat = mat2plot,
          cluster_cols = FALSE, 
@@ -2978,7 +2981,7 @@ abund_gene.m <- gene.m[abund_taxa,]
 # Drop unclassified assignments
 mat2plot <- abund_gene.m[-match("Unclassified;_;_;_;_;_;_", rownames(abund_gene.m)),]
 
-png(filename = "Abundant-genes-taxonomy-heatmap_GLmetagenomics.png", 
+png(filename = "Abundant-genes-taxonomy-heatmap_GLlbnMetag.png", 
     width = plot_width, height = plot_height, units = "in", res=300)
 pheatmap(mat = mat2plot,
          cluster_cols = FALSE, 
@@ -2992,13 +2995,13 @@ dev.off()
 ```
 
 **Input data:**
-- assembly-summaries_GLmetagenomics.tsv (table of assembly summary statistics, output from [Step 13b](#13b-summarizing-assemblies))
-- Combined-gene-level-taxonomy-coverages-CPM_GLmetagenomics.tsv (table with all samples combined based on gene-level taxonomic classifications, output from [Step 21a](#21a-generating-gene-level-coverage-summary-tables)) 
+- assembly-summaries_GLlbnMetag.tsv (table of assembly summary statistics, output from [Step 13b](#13b-summarizing-assemblies))
+- Combined-gene-level-taxonomy-coverages-CPM_GLlbnMetag.tsv (table with all samples combined based on gene-level taxonomic classifications, output from [Step 21a](#21a-generating-gene-level-coverage-summary-tables)) 
 
 **Output data:**
 - gene_taxonomy_table.csv (aggregated gene taxonomy table)
-- **All-genes-taxonomy-heatmap_GLmetagenomics.png** (heatmap of all genes taxonomy assignments)
-- **Abundant-genes-taxonomy-heatmap_GLmetagenomics.png** (heatmap of abundant genes taxonomy assignments)
+- **All-genes-taxonomy-heatmap_GLlbnMetag.png** (heatmap of all genes taxonomy assignments)
+- **Abundant-genes-taxonomy-heatmap_GLlbnMetag.png** (heatmap of abundant genes taxonomy assignments)
 
 #### 21c. Gene-level taxonomy decontamination
 
@@ -3062,7 +3065,7 @@ species_to_drop_index <- grep(x = rownames(feature_table),
                                     collapse = "|"))
 
 mat2plot <- feature_table[-species_to_drop_index,]
-png(filename = "decontaminated-gene-taxonomy-heatmap_GLmetagenomics.png", 
+png(filename = "decontaminated-gene-taxonomy-heatmap_GLlbnMetag.png", 
     width = plot_width, height = plot_height, units = "in", res=300)
 pheatmap(mat = mat2plot,
          cluster_cols = FALSE, 
@@ -3085,7 +3088,7 @@ dev.off()
 
 - **decontam-gene-taxonomy_results.csv** (decontam's results table)
 - **decontaminated-gene-taxonomy_table.csv** (decontaminated species table)
-- **decontaminated-gene-taxonomy-heatmap_GLmetagenomics.png** (heatmap after filtering out contaminants)
+- **decontaminated-gene-taxonomy-heatmap_GLlbnMetag.png** (heatmap after filtering out contaminants)
 
 
 
@@ -3098,9 +3101,9 @@ library(pheatmap)
 # Abundant functions with CPM > 2000
 abundance_threshold <- 2000
 
-sample_order <- get_sample_names("assembly-summaries_GLmetagenomics.tsv")
+sample_order <- get_sample_names("assembly-summaries_GLlbnMetag.tsv")
 # Read-in KO functions table
-functions_table <- read_input_table("Combined-gene-level-KO-function-coverages-CPM_GLmetagenomics.tsv") %>%
+functions_table <- read_input_table("Combined-gene-level-KO-function-coverages-CPM_GLlbnMetag.tsv") %>%
                     select(KO_ID, KO_function, !!sample_order)
 
 # Subset table and then convert from datafame to matrix
@@ -3118,7 +3121,7 @@ write_csv(x = table2write  , file = "genes-KO-functions_table.csv")
 # Drop unclassified assignments
 mat2plot <- functions.m[-match("Not annotated", rownames(functions.m),]
 
-png(filename = "All-genes-KO-functions-heatmap_GLmetagenomics.png", 
+png(filename = "All-genes-KO-functions-heatmap_GLlbnMetag.png", 
     width = plot_width, height = plot_height, units = "in", res=300)
 pheatmap(mat = mat2plot,
          cluster_cols = FALSE, 
@@ -3141,7 +3144,7 @@ abund_functions.m <- functions.m[abund_functions,]
 # Drop unannotated assignments
 mat2plot <- abund_functions.m[-match("Not annotated", rownames(abund_functions.m)),]
 
-png(filename = "Abundant-genes-KO-functions-heatmap_GLmetagenomics.png", 
+png(filename = "Abundant-genes-KO-functions-heatmap_GLlbnMetag.png", 
     width = plot_width, height = plot_height, units = "in", res=300)
 pheatmap(mat = mat2plot,
          cluster_cols = FALSE, 
@@ -3158,13 +3161,13 @@ dev.off()
 
 
 **Input data:**
-- assembly-summaries_GLmetagenomics.tsv (table of assembly summary statistics, output from [Step 13b](#13b-summarizing-assemblies))
-- Combined-gene-level-KO-function-coverages-CPM_GLmetagenomics.tsv (table with all samples combined based on KO annotations; normalized to coverage per million genes covered, output from [Step 21a](#21a-generating-gene-level-coverage-summary-tables))
+- assembly-summaries_GLlbnMetag.tsv (table of assembly summary statistics, output from [Step 13b](#13b-summarizing-assemblies))
+- Combined-gene-level-KO-function-coverages-CPM_GLlbnMetag.tsv (table with all samples combined based on KO annotations; normalized to coverage per million genes covered, output from [Step 21a](#21a-generating-gene-level-coverage-summary-tables))
 
 **Output data:**
 - genes-KO-functions_table.csv (aggregated and subsetted gene KO functions table)
-- **All-genes-KO-functions-heatmap_GLmetagenomics.png** (heatmap of gene-wise KO function assignments)
-- **Abundant-genes-KO-functions-heatmap_GLmetagenomics.png** (heatmap of gene-wise abundant KO function assignments)
+- **All-genes-KO-functions-heatmap_GLlbnMetag.png** (heatmap of gene-wise KO function assignments)
+- **Abundant-genes-KO-functions-heatmap_GLlbnMetag.png** (heatmap of gene-wise abundant KO function assignments)
 
 #### 21e. Gene-level KO functions decontamination --- END NEEDS REVIEW ---
 
@@ -3227,7 +3230,7 @@ functions_to_drop_index <- grep(x = rownames(feature_table),
                                     collapse = "|"))
 
 mat2plot <- feature_table[-functions_to_drop_index,]
-png(filename = "decontaminated-gene-KO-functions-heatmap_GLmetagenomics.png", 
+png(filename = "decontaminated-gene-KO-functions-heatmap_GLlbnMetag.png", 
     width = plot_width, height = plot_height, units = "in", res=300)
 pheatmap(mat = mat2plot,
          cluster_cols = FALSE, 
@@ -3250,7 +3253,7 @@ dev.off()
 
 - **decontam-gene-KO-functions_results.csv** (decontam's results table)
 - **decontaminated-gene-KO-functions_table.csv** (decontaminated functions table)
-- **decontaminated-gene-KO-functions-heatmap_GLmetagenomics.png** (heatmap after filtering out contaminants)
+- **decontaminated-gene-KO-functions-heatmap_GLlbnMetag.png** (heatmap after filtering out contaminants)
 
 
 
@@ -3272,8 +3275,8 @@ bit-GL-combine-contig-tax-tables *-contig-coverage-and-tax.tsv -o Combined
 
 **Output Data:**
 
-- **Combined-contig-level-taxonomy-coverages-CPM_GLmetagenomics.tsv** (table with all samples combined based on contig-level taxonomic classifications; normalized to coverage per million contigs covered)
-- **Combined-contig-level-taxonomy-coverages_GLmetagenomics.tsv** (table with all samples combined based on contig-level taxonomic classifications)
+- **Combined-contig-level-taxonomy-coverages-CPM_GLlbnMetag.tsv** (table with all samples combined based on contig-level taxonomic classifications; normalized to coverage per million contigs covered)
+- **Combined-contig-level-taxonomy-coverages_GLlbnMetag.tsv** (table with all samples combined based on contig-level taxonomic classifications)
 
 <br>
 
@@ -3283,9 +3286,9 @@ bit-GL-combine-contig-tax-tables *-contig-coverage-and-tax.tsv -o Combined
 ```R
 plot_width <- 20
 plot_height <- 30
-sample_order <- get_sample_names("assembly-summaries_GLmetagenomics.tsv")
+sample_order <- get_sample_names("assembly-summaries_GLlbnMetag.tsv")
 
-contig_table <-  read_contig_table("Combined-contig-level-taxonomy-coverages-CPM_GLmetagenomics.tsv", sample_order)
+contig_table <-  read_contig_table("Combined-contig-level-taxonomy-coverages-CPM_GLlbnMetag.tsv", sample_order)
 species_contig_table <- contig_table %>% select(species, !!sample_order)
 
 contig.m <- species_contig_table %>%
@@ -3305,7 +3308,7 @@ contig.m <- contig.m[,-match("species", colnames(contig.m))] %>% as.matrix()
 # Drop unclassified assignments
 mat2plot <- contig.m[-match("Unclassified;_;_;_;_;_;_", rownames(contig.m)),]
 
-png(filename = "All-contig-taxonomy-heatmap_GLmetagenomics.png", 
+png(filename = "All-contig-taxonomy-heatmap_GLlbnMetag.png", 
     width = plot_width, height = plot_height, units = "in", res=300)
 pheatmap(mat = mat2plot,
          cluster_cols = FALSE, 
@@ -3326,7 +3329,7 @@ abund_contig.m <- contig.m[abund_taxa,]
 
 mat2plot <- abund_contig.m[-match("Unclassified;_;_;_;_;_;_", rownames(abund_contig.m)),]
 
-png(filename = "Abundant-contig-taxonomy-heatmap_GLmetagenomics.png", 
+png(filename = "Abundant-contig-taxonomy-heatmap_GLlbnMetag.png", 
     width = plot_width, height = plot_height, units = "in", res=300)
 pheatmap(mat = mat2plot,
          cluster_cols = FALSE, 
@@ -3345,14 +3348,14 @@ dev.off()
 
 **Input data:**
 
-- assembly-summaries_GLmetagenomics.tsv (table of assembly summary statistics, output from [Step 13b](#13b-summarizing-assemblies))
-- Combined-contig-level-taxonomy-coverages-CPM_GLmetagenomics.tsv (table with all samples combined based on contig-level taxonomic classifications; normalized to coverage per million genes covered from [Step 21f](#21f-generating-contig-level-coverage-summary-tables))
+- assembly-summaries_GLlbnMetag.tsv (table of assembly summary statistics, output from [Step 13b](#13b-summarizing-assemblies))
+- Combined-contig-level-taxonomy-coverages-CPM_GLlbnMetag.tsv (table with all samples combined based on contig-level taxonomic classifications; normalized to coverage per million genes covered from [Step 21f](#21f-generating-contig-level-coverage-summary-tables))
 
 **Output data:**
 
 - contig_taxonomy_table.csv (aggregated contig taxonomy)
-- **All-contig-taxonomy-heatmap_GLmetagenomics.png** (All contig level taxonomy heatmap)
-- **Abundant-contig-taxonomy-heatmap_GLmetagenomics.png** (Abundant contig level taxonomy heatmap)
+- **All-contig-taxonomy-heatmap_GLlbnMetag.png** (All contig level taxonomy heatmap)
+- **Abundant-contig-taxonomy-heatmap_GLlbnMetag.png** (Abundant contig level taxonomy heatmap)
 
 
 #### 21h. Contig-level decontamination --- END NEEDS REVIEW ---
@@ -3417,7 +3420,7 @@ species_to_drop_index <- grep(x = rownames(feature_table),
                                     collapse = "|"))
 
 mat2plot <- feature_table[-species_to_drop_index,]
-png(filename = "decontaminated-contig-taxonomy-heatmap_GLmetagenomics.png", 
+png(filename = "decontaminated-contig-taxonomy-heatmap_GLlbnMetag.png", 
     width = plot_width, height = plot_height, units = "in", res=300)
 pheatmap(mat = mat2plot,
          cluster_cols = FALSE, 
@@ -3440,7 +3443,7 @@ dev.off()
 
 - **decontam-contig-taxonomy_results.csv** (decontam's results table)
 - **decontaminated-contig-taxonomy_table.csv** (decontaminated species table)
-- **decontaminated-contig-taxonomy-heatmap_GLmetagenomics.png** (heatmap after filtering out contaminants)
+- **decontaminated-contig-taxonomy-heatmap_GLlbnMetag.png** (heatmap after filtering out contaminants)
 
 
 ---
@@ -3501,7 +3504,7 @@ zip -r sample-bins.zip sample-bins
 > Utilizes the default `checkm` database available [here](https://data.ace.uq.edu.au/public/CheckM_databases/checkm_data_2015_01_16.tar.gz), `checkm_data_2015_01_16.tar.gz`.
 
 ```bash
-checkm lineage_wf -f bins-overview_GLmetagenomics.tsv \
+checkm lineage_wf -f bins-overview_GLlbnMetag.tsv \
                   --tab_table \
                   -x fasta \
                   ./ \
@@ -3523,18 +3526,18 @@ checkm lineage_wf -f bins-overview_GLmetagenomics.tsv \
 
 **Output Data:**
 
-- **bins-overview_GLmetagenomics.tsv** (tab-delimited file with quality estimates per bin)
+- **bins-overview_GLlbnMetag.tsv** (tab-delimited file with quality estimates per bin)
 - checkm-output-dir/ (directory holding detailed checkm outputs)
 
 #### 22c. Filter MAGs
 
 ```bash
-cat <( head -n 1 bins-overview_GLmetagenomics.tsv ) \
-    <( awk -F $'\t' ' $12 >= 90 && $13 <= 10 && $14 == 0 ' bins-overview_GLmetagenomics.tsv | sed 's/bin./MAG-/' ) \
+cat <( head -n 1 bins-overview_GLlbnMetag.tsv ) \
+    <( awk -F $'\t' ' $12 >= 90 && $13 <= 10 && $14 == 0 ' bins-overview_GLlbnMetag.tsv | sed 's/bin./MAG-/' ) \
     > checkm-MAGs-overview.tsv
     
 # copying bins into a MAGs directory in order to run tax classification
-awk -F $'\t' ' $12 >= 90 && $13 <= 10 && $14 == 0 ' bins-overview_GLmetagenomics.tsv | cut -f 1 > MAG-bin-IDs.tmp
+awk -F $'\t' ' $12 >= 90 && $13 <= 10 && $14 == 0 ' bins-overview_GLlbnMetag.tsv | cut -f 1 > MAG-bin-IDs.tmp
 
 mkdir MAGs
 for ID in MAG-bin-IDs.tmp
@@ -3553,7 +3556,7 @@ done
 
 **Input Data:**
 
-- bins-overview_GLmetagenomics.tsv (tab-delimited file with quality estimates per bin from [Step 22b](#22b-bin-quality-assessment))
+- bins-overview_GLlbnMetag.tsv (tab-delimited file with quality estimates per bin from [Step 22b](#22b-bin-quality-assessment))
 
 **Output Data:**
 
@@ -3592,7 +3595,7 @@ gtdbtk classify_wf --genome_dir MAGs/ \
 
 ```bash
 # combine summaries
-for MAG in $(cut -f 1 assembly-summaries_GLmetagenomics.tsv | tail -n +2); do
+for MAG in $(cut -f 1 assembly-summaries_GLlbnMetag.tsv | tail -n +2); do
 
     grep -w -m 1 "^${MAG}" checkm-MAGs-overview.tsv | cut -f 12,13,14 \
         >> checkm-estimates.tmp
@@ -3612,7 +3615,7 @@ cat <(printf "est. completeness\test. redundancy\test. strain heterogeneity\n") 
 cat <(printf "domain\tphylum\tclass\torder\tfamily\\tgenus\tspecies\n") gtdb-taxonomies.tmp \
     > gtdb-taxonomies-with-headers.tmp
 
-paste assembly-summaries_GLmetagenomics.tsv \
+paste assembly-summaries_GLlbnMetag.tsv \
 checkm-estimates-with-headers.tmp \
 gtdb-taxonomies-with-headers.tmp \
     > MAGs-overview.tmp
@@ -3623,19 +3626,19 @@ head -n 1 MAGs-overview.tmp > MAGs-overview-header.tmp
 tail -n +2 MAGs-overview.tmp | sort -t \$'\t' -k 14,20 > MAGs-overview-sorted.tmp
 
 cat MAGs-overview-header.tmp MAGs-overview-sorted.tmp \
-    > MAGs-overview_GLmetagenomics.tsv
+    > MAGs-overview_GLlbnMetag.tsv
 ```
 
 **Input Data:**
 
-- assembly-summaries_GLmetagenomics.tsv (table of assembly summary statistics, output from [Step 13b](#13b-summarize-assemblies))
+- assembly-summaries_GLlbnMetag.tsv (table of assembly summary statistics, output from [Step 13b](#13b-summarize-assemblies))
 - MAGs/\*.fasta (directory holding high-quality MAGs, output from [Step 22c](#23c-filter-mags))
 - checkm-MAGs-overview.tsv (tab-delimited file with quality estimates per MAG, output from [Step 22c](#22c-filter-mags))
 - gtdbtk-output-dir/gtdbtk.\*.summary.tsv (directory of files with assigned taxonomy and info, output from [Step 22d](#22d-mag-taxonomic-classification))
 
 **Output Data:**
 
-- **MAGs-overview_GLmetagenomics.tsv** (a tab-delimited overview of all recovered MAGs)
+- **MAGs-overview_GLlbnMetag.tsv** (a tab-delimited overview of all recovered MAGs)
 
 
 <br>
@@ -3659,7 +3662,7 @@ do
     python parse-MAG-annots.py -i annotations-and-taxonomy/${sample_ID}-gene-coverage-annotation-and-tax.tsv \
                                -w ${MAG_ID}-contigs.tmp \
                                -M ${MAG_ID} \
-                               -o MAG-level-KO-annotations_GLmetagenomics.tsv
+                               -o MAG-level-KO-annotations_GLlbnMetag.tsv
 
     rm ${MAG_ID}-contigs.tmp
 
@@ -3680,15 +3683,15 @@ done
 
 **Output Data:**
 
-- **MAG-level-KO-annotations_GLmetagenomics.tsv** (tab-delimited table holding MAGs and their KO annotations)
+- **MAG-level-KO-annotations_GLlbnMetag.tsv** (tab-delimited table holding MAGs and their KO annotations)
 
 
 #### 23b. Summarize KO Annotations With KEGG-Decoder
 
 ```bash
 KEGG-decoder -v interactive \
-             -i MAG-level-KO-annotations_GLmetagenomics.tsv \
-             -o MAG-KEGG-Decoder-out_GLmetagenomics.tsv
+             -i MAG-level-KO-annotations_GLlbnMetag.tsv \
+             -o MAG-KEGG-Decoder-out_GLlbnMetag.tsv
 ```
 
 **Parameter Definitions:**  
@@ -3699,13 +3702,13 @@ KEGG-decoder -v interactive \
 
 **Input Data:**
 
-- MAG-level-KO-annotations_GLmetagenomics.tsv (tab-delimited table holding MAGs and their KO annotations, output from [Step 23a](#23a-getting-ko-annotations-per-mag))
+- MAG-level-KO-annotations_GLlbnMetag.tsv (tab-delimited table holding MAGs and their KO annotations, output from [Step 23a](#23a-getting-ko-annotations-per-mag))
 
 **Output Data:**
 
-- **MAG-KEGG-Decoder-out_GLmetagenomics.tsv** (tab-delimited table holding MAGs and their proportions of genes held known to be required for specific pathways/metabolisms)
+- **MAG-KEGG-Decoder-out_GLlbnMetag.tsv** (tab-delimited table holding MAGs and their proportions of genes held known to be required for specific pathways/metabolisms)
 
-- **MAG-KEGG-Decoder-out_GLmetagenomics.html** (interactive heatmap html file of the above output table)
+- **MAG-KEGG-Decoder-out_GLlbnMetag.html** (interactive heatmap html file of the above output table)
 
 <br>
 
