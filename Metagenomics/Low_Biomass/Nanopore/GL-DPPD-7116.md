@@ -1888,7 +1888,7 @@ kaiju -f kaiju-db/nr_euk/kaiju_db_nr_euk.fmi \
 - kaiju-db/nodes.dmp (kaiju taxonomy hierarchy nodes file, output from [Step 9a](#9a-build-kaiju-database))
 - sample_GLlblMetag_decontam.fastq.gz or sample_GLlblMetag_HostRm.fastq.gz (filtered and trimmed sample reads with both 
     contaminants and human reads (and optionally host reads) removed, gzipped fasta file, 
-    output from [Step 7e](#7e-generate-decontaminated-read-files) or [Step 8](#8b-remove-host-reads))
+    output from [Step 7e](#7e-generate-decontaminated-read-files) or [Step 8b](#8b-remove-host-reads))
 
 **Output Data:**
 
@@ -2113,7 +2113,7 @@ p <- make_barplot(metadata_file = metadata_file, feature_table_file = species_ta
                   feature_column = "Species", samples_column = "sample_id", group_column = "group",
                   publication_format = publication_format, custom_palette = custom_palette)
 
-ggsave(filename = "unfiltered-kaiju_species_barplot_GLlblMetag.png", plot = p,
+ggsave(filename = "kaiju_unfiltered_species_barplot_GLlblMetag.png", plot = p,
        device = "png", width = plot_width, height = 10, units = "in", dpi = 300, limitsize = FALSE)
 
 # Save static unfiltered plot
@@ -2212,7 +2212,7 @@ htmlwidgets::saveWidget(ggplotly(p), glue("kaiju_decontam_species_barplot_GLlblM
 
 **Input Data:**
 
-- `kaiju_filtered_species_table_GLlblMetag.csv`(path to filtered species count per sample, output from [Step 9](#9g-filter-kaiju-species-count-table))
+- `kaiju_filtered_species_table_GLlblMetag.csv`(path to filtered species count per sample, output from [Step 9g](#9g-filter-kaiju-species-count-table))
 - `/path/to/sample/metadata` (a file containing sample-wise metadata, mapping samplenames to group metadata)
 
 **Output Data:**
@@ -2304,7 +2304,7 @@ kraken2 --db kraken2-db/ \
 - kraken2-db/ (a directory containing kraken2 database files, output from [Step 10a](#10a-download-kraken2-database))
 - sample_GLlblMetag_decontam.fastq.gz or sample_GLlblMetag_HostRm.fastq.gz (filtered and trimmed sample reads with both 
     contaminants and human reads (and, optionally, host reads) removed, gzipped fasta file, 
-    output from [Step 7e](#7e-generate-decontaminated-read-files) or [Step 8](#8b-remove-host-reads))
+    output from [Step 7e](#7e-generate-decontaminated-read-files) or [Step 8b](#8b-remove-host-reads))
 
 **Output Data:**
 
@@ -2344,7 +2344,6 @@ write_csv(x = species_table, file = "merged-kraken2-table.csv")
 **Output Data:**
 
 - **kraken2_species_table_GLlblMetag.csv** (kraken species count table in csv format)
-
 
 ##### 10cii. Compile Kraken2 Taxonomy Reports
 
@@ -2489,7 +2488,7 @@ write_csv(x = table2write, file = output_file)
 
 **Input Data:**
 
-- kaiju_species_table_GLlblMetag.csv (path to kaiju species table from [Step 10ci.](#10ci-create-merged-kraken2-taxonomy-table))
+- kraken2_species_table_GLlblMetag.csv (path to kaiju species table from [Step 10ci.](#10ci-create-merged-kraken2-taxonomy-table))
 
 **Output Data:**
 
@@ -2546,8 +2545,8 @@ htmlwidgets::saveWidget(ggplotly(p), glue("kraken2_filtered_species_barplot_GLlb
 
 **Input Data:**
 
-- `kraken2_species_table_GLlblMetag.csv` (a file containing the species count table, output from [Step 9f](#9f-create-kaiju-species-count-table))
-- `kraken2_filtered_species_table_GLlblMetag.csv` (a file containing the filtered species count table, output from [Step 9g](#9g-filter-kaiju-species-count-table))
+- `kraken2_species_table_GLlblMetag.csv` (path to kaiju species table from [Step 10ci.](#10ci-create-merged-kraken2-taxonomy-table))
+- `kraken2_filtered_species_table_GLlblMetag.csv` (a file containing the filtered species count table, output from [Step 9g](#10f-filter-kraken2-species-count-table))
 - `/path/to/sample/metadata` (a file containing sample-wise metadata, mapping samplenames to group metadata)
 
 **Output Data:**
@@ -2656,7 +2655,7 @@ mv sample/flye.log sample_assembly.log
 
 - sample_GLlblMetag_decontam.fastq.gz or sample_GLlblMetag_HostRm.fastq.gz (filtered and trimmed sample reads with both 
     contaminants and human reads (and optionally host reads) removed, gzipped fasta file, 
-    output from [Step 7e](#7e-generate-decontaminated-read-files) or [Step 8](#8b-remove-host-reads))
+    output from [Step 7e](#7e-generate-decontaminated-read-files) or [Step 8b](#8b-remove-host-reads))
 
 **Output Data**
 
@@ -2689,7 +2688,7 @@ mv sample/consensus.fasta sample_polished.fasta
 
 - sample_GLlblMetag_decontam.fastq.gz or sample_GLlblMetag_HostRm.fastq.gz (filtered and trimmed sample reads with both 
     contaminants and human reads (and optionally host reads) removed, gzipped fasta file, 
-    output from [Step 7e](#7e-generate-decontaminated-read-files) or [Step 8](#8b-remove-host-reads))
+    output from [Step 7e](#7e-generate-decontaminated-read-files) or [Step 8b](#8b-remove-host-reads))
 - /path/to/assemblies/sample_assembly.fasta (sample assembly, output from [Step 11](#11-sample-assembly))
 
 **Output Data:**
@@ -2759,7 +2758,7 @@ prodigal -a sample-genes.faa \
          -p meta \
          -c \
          -q \
-         -o sample-genes.gff \
+         -o sample-genes_GLlblMetag.gff \
          -i sample-assembly_GLlblMetag.fasta
 ```
 
@@ -3074,7 +3073,7 @@ minimap2 -a \
 - sample-assembly.fasta (contig-renamed assembly file, output from [Step 13a](#13a-rename-contig-headers))
 - sample_GLlblMetag_decontam.fastq.gz or sample_GLlblMetag_HostRm.fastq.gz (filtered and trimmed sample reads with both 
     contaminants and human reads (and optionally host reads) removed, gzipped fasta file, 
-    output from [Step 7e](#7e-generate-decontaminated-read-files) or [Step 8](#8b-remove-host-reads))
+    output from [Step 7e](#7e-generate-decontaminated-read-files) or [Step 8b](#8b-remove-host-reads))
 
 **Output Data**
 
@@ -3286,7 +3285,7 @@ mv "Combined-gene-level-taxonomy-coverages.tsv Combined-gene-level-taxonomy-cove
 
 **Parameter Definitions:**  
 
-- `*-gene-coverage-annotation-and-tax.tsv` - Positional arguments specifying the input tsv files, can be provided as a space-delimited list of files, or with wildcards like above.
+- `*-gene-coverage-annotation-and-tax_GLlbsMetag.tsv` - Positional arguments specifying the input tsv files, can be provided as a space-delimited list of files, or with wildcards like above.
 
 - `-o` – Specifies the output file prefix.
 
