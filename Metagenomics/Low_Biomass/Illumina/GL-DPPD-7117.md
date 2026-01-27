@@ -943,7 +943,8 @@ library(pavian)
   - `mat` - a feature count matrix with features as rows and samples as columns
   - `cpm_threshold = 1000` - threshold to identify abundant features
 
-  **Returns:** a species relative abundance matrix with samples and species as rows and column, respectively.
+  **Returns:** a matrix holding the features that pass the requested threshold
+  
 </details>
 
 #### count_to_rel_abundance()
