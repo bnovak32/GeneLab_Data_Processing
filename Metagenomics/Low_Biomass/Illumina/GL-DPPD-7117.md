@@ -153,7 +153,6 @@ Barbara Novak (GeneLab Data Processing Lead)
 |Kraken2| 2.1.6 | [https://github.com/DerrickWood/kraken2](https://github.com/DerrickWood/kraken2) |
 |Krona| 2.8.1 | [https://github.com/marbl/Krona/wiki](https://github.com/marbl/Krona/wiki)|
 |MetaBAT| 2.15 |[https://bitbucket.org/berkeleylab/metabat/src/master/](https://bitbucket.org/berkeleylab/metabat/src/master/)|
-|Minimap2| 2.28 | [https://github.com/lh3/minimap2](https://github.com/lh3/minimap2) |
 |MultiQC| 1.27.1 |[https://multiqc.info/](https://multiqc.info/)|
 |Medaka| 2.1.1 | [https://github.com/nanoporetech/medaka](https://github.com/nanoporetech/medaka) |
 |MetaPhlAn| 4.1.0 |[https://github.com/biobakery/MetaPhlAn](https://github.com/biobakery/MetaPhlAn)|
@@ -787,6 +786,7 @@ library(pavian)
   - `remove_prefix=` - a character string containing a regular expression to be matched and removed, default=`NULL`
 
   **Returns:** the last taxonomy assignment listed in the `taxonomy_string`
+
 </details>
 
 #### mutate_taxonomy()
@@ -819,7 +819,7 @@ library(pavian)
   - `df` - a dataframe containing the taxonomy assignments
   - `taxonomy_column=` - name of the column in `df` containing the taxonomy assignments, default="taxonomy"
 
-  **Returns:** a dataframe with unique last taxonomy names stored in a column named "taxonomy"
+  **Returns:** dataframe, `df`, with unique last taxonomy names stored in a column named "taxonomy"
 
 </details>
 
@@ -869,10 +869,9 @@ library(pavian)
   - `file_path` - file path to the tab-delimited kaiju output table file
   - `taxon_col=`- name of the taxon column in the input data file, default="taxon_name"
 
-  **Returns:** a dataframe with reformated kaiju output
+  **Returns:** dataframe, `abs_abun_matrix`, with reformated kaiju output
 
 </details>
-
 
 #### merge_kraken_reports()
 <details>
@@ -918,7 +917,7 @@ library(pavian)
   **Function Parameter Definitions:**
   - `reports_dir` - path to a directory containing kraken2 reports 
 
-  **Returns:** a kraken species count matrix with samples and species as columns and rows, respectively.
+  **Returns:** a kraken species count matrix, `species_table`, with samples and species as columns and rows, respectively.
 
 </details>
 
@@ -943,7 +942,7 @@ library(pavian)
   - `mat` - a feature count matrix with features as rows and samples as columns
   - `cpm_threshold = 1000` - threshold to identify abundant features
 
-  **Returns:** a matrix holding the features that pass the requested threshold
+  **Returns:** a matrix, `abund_features.m`, holding the features that pass the requested threshold
   
 </details>
 
@@ -976,10 +975,9 @@ library(pavian)
   **Function Parameter Definitions:**
   - `species_table` - a species count matrix with samples and species as columns and rows, respectively.
 
-  **Returns:** a species relative abundance matrix with samples and species as rows and column, respectively.
+  **Returns:** a species relative abundance matrix, `abund_table`, with samples and species as rows and columns, respectively.
 
 </details>
-
 
 #### filter_rare()
 <details>
@@ -1019,7 +1017,8 @@ library(pavian)
   - `non_microbial` - a regular expression denoting the names used to identify a species as non-microbial or unwanted
   - `threshold=` - abundance threshold used to determine if the relative abundance is rare, value denotes a percentage between 0 and 100.
 
-  **Returns:** a dataframe with rare and non_microbial/unwanted species removed
+  **Returns:** dataframe, `abund_table`, with rare and non_microbial/unwanted species removed
+
 </details>
 
 #### group_low_abund_taxa()
@@ -1078,11 +1077,11 @@ library(pavian)
   - `rare_taxa` - a boolean specifying if only rare taxa should be returned
   - `threshold` - a max abundance threshold for defining taxa as rare
 
-  **Returns:** a relative abundance matrix with rare taxa grouped or with non-rare taxa filtered out
+  **Returns:** a relative abundance matrix, `abund_table`, with rare taxa grouped or with non-rare taxa filtered out
 
 </details>
 
-##### make_plot()
+#### make_plot()
 <details>
   <summary>Create stacked bar plots of relative abundance from input dataframes</summary>
 
@@ -1123,11 +1122,11 @@ library(pavian)
   - `samples_column` - a character column specifying the column in `metadata` holding sample names, default is "Sample_ID"
   - `prefix_to_remove` - a string specifying a prefix or any character set to remove from sample names, default is "barcode"
 
-  **Returns:** a relative abundance stacked bar plot
+  **Returns:** a relative abundance stacked bar plot, `p`
 
 </details>
 
-##### make_barplot()
+#### make_barplot()
 <details>
   <summary>Parse Metadata and Feature table files in order to create stacked barplots of relative abundance.</summary>
   
@@ -1177,14 +1176,14 @@ library(pavian)
   - `output_prefix` - a character string specifying the unique name to add to the output file names 
                       used to denote the data type/source, for example "unfiltered-kaiju_species"
   - `assay_suffix` - a character string specifying the GeneLab assay suffix (default: "_GLlbsMetag")
-  - `publication_format` - a ggplot::theme object specifying a custom theme for plotting, from [Step 8c](#8c-set-global-variables)
-  - `custom_palette` - a vector of strings specifying a custom color palette for coloring plots, from [Step 8c](#8c-set-global-variables)
+  - `publication_format` - a ggplot::theme object specifying a custom theme for plotting, from [Step 6c](#8c-set-global-variables)
+  - `custom_palette` - a vector of strings specifying a custom color palette for coloring plots, from [Step 6c](#8c-set-global-variables)
 
-  **Returns:** a relative abundance stacked bar plot as output from [make_plot](#make_plot)
+  **Returns:** a relative abundance stacked bar plot, `p`, as output from [make_plot](#make_plot)
 
 </details>
 
-##### make_heatmap()
+#### make_heatmap()
 <details>
   <summary>Creates heatmaps from a feature table file</summary>
   
@@ -1235,12 +1234,13 @@ library(pavian)
   - `output_prefix` - a character string specifying the unique name to add to the output file names 
                       used to denote the data type/source, for example "unfiltered-kaiju_species"
   - `assay_suffix` - a character string specifying the GeneLab assay suffix (default: "_GLlbsMetag")
-  - `custom_palette` - a vector of strings specifying a custom color palette for coloring plots, from [Step 8c](#8c-set-global-variables)
+  - `custom_palette` - a vector of strings specifying a custom color palette for coloring plots, from [Step 6c](#8c-set-global-variables)
 
-  **Returns:** A heatmap of species/functions across samples from the input feature table
+  **Output Data:** heatmap png file, `{output_prefix}_heatmap{assay_suffix}.png`, of species/functions across samples from the input feature table
+  
 </details>
 
-##### run_decontam()
+#### run_decontam()
 <details>
   <summary>Feature table decontamination with decontam</summary>
 
@@ -1308,10 +1308,11 @@ library(pavian)
   - `contam_threshold` -  the probability threshold below which (strictly less than) the null-hypothesis 
                           (not a contaminant) should be rejected in favor of the alternate hypothesis (contaminant).
 
-  **Returns:** a dataframe of detailed decontam results
+  **Returns:** dataframe, `contamdf`, containing detailed decontam results
+
 </details>
 
-##### feature_decontam() 
+#### feature_decontam() 
 <details>
   <summary>decontaminate a feature table</summary>
   
@@ -1397,10 +1398,10 @@ library(pavian)
   - {classification_method}_decontam_species_table_GLlbsMetag.csv - decontaminated feature table file
   - {classification_method}_decontam_results_GLlbsMetag.csv - Decontam results file
 
-  **Returns:** a dataframe containing the decontaminated feature table
+  **Returns:** dataframe, `decontaminated_table`, containing the decontaminated feature table
 </details>
 
-##### process_taxonomy()
+#### process_taxonomy()
 <details>
   <summary>process a taxonomy assignment table</summary>
 
@@ -1432,10 +1433,10 @@ library(pavian)
   - `prefix`  - is a regular expression specifying a character sequence to remove
                 from taxon names
 
-  **Returns:** a dataframe of reformated taxonomy names
+  **Returns:** dataframe, `taxonomy`, containing reformated taxonomy names
 </details>
 
-##### fix_names()
+#### fix_names()
 <details>
   <summary>clean taxonomy names</summary>
 
@@ -1464,12 +1465,11 @@ library(pavian)
   - `stringToReplace` - a regex string specifying what to replace
   - `suffix` - string specifying the replacement value
 
-  **Returns:** a dataframe of reformated/cleaned taxonomy names
+  **Returns:** dataframe, `taxonomy`, containing reformated/cleaned taxonomy names
 
 </details>
 
-
-##### read_assembly_coverage_table()
+#### read_assembly_coverage_table()
 <details>
   <summary>Read Assembly-based coverage annotation table</summary>
 
@@ -1506,12 +1506,11 @@ library(pavian)
   - `file_name` - path to contig taxonomy assignment file to be read
   - `sample_names` - string of samples names to keep in the final dataframe
 
-  **Returns:** a dataframe with cleaned taxonomy names and sample species count
+  **Returns:** dataframe, `df`, containing cleaned taxonomy names and sample species count
 
 </details>
 
-
-##### get_sample_names()
+#### get_sample_names()
 <details>
   <summary>retrieve sample names for which assemblies were generated</summary>
 
@@ -1531,10 +1530,9 @@ library(pavian)
   **Function Parameter Definitions:**
   - `assembly_summary` - path to assembly summary file
 
-  **Returns:** a character vector of sorted sample names
+  **Returns:** a character vector, `sample_order`, of sorted sample names
 
 </details>
-
 
 #### 6c. Set global variables
 
@@ -1639,8 +1637,8 @@ kaiju -f kaiju-db/nr_euk/kaiju_db_nr_euk.fmi \
 
 **Input Data:**
 
-- kaiju-db/nr_euk/kaiju_db_nr_euk.fmi (FM-index file containing the main Kaiju database index, output from [Step 9a](#9a-build-kaiju-database))
-- kaiju-db/nodes.dmp (kaiju taxonomy hierarchy nodes file, output from [Step 7a](#9a-build-kaiju-database))
+- kaiju-db/nr_euk/kaiju_db_nr_euk.fmi (FM-index file containing the main Kaiju database index, output from [Step 7a](#7a-build-kaiju-database))
+- kaiju-db/nodes.dmp (kaiju taxonomy hierarchy nodes file, output from [Step 7a](#7a-build-kaiju-database))
 - *_R[12]_decontam.fastq.gz or *_R[12]_HostRm.fastq.gz (filtered and trimmed sample reads with both 
     contaminants and human reads (and, optionally, host reads) removed, gzipped fasta file, 
     output from [Step 4b](#4b-build-contaminant-index-and-map-reads) or [Step 5b](#5b-remove-host-reads))
@@ -2056,7 +2054,7 @@ kraken2 --db kraken2-db/ \
 - kraken2-db/ (a directory containing kraken2 database files, output from [Step 10a](#10a-download-kraken2-database))
 - *_R[12]_decontam.fastq.gz or *_R[12]_HostRm.fastq.gz (filtered and trimmed sample reads with both 
     contaminants and human reads (and, optionally, host reads) removed, gzipped fasta file, 
-    output from [Step 4b](#4b-build-contaminant-index-and-map-reads) or [Step 5b](#5b-remove-host-reads))
+    output from [Step 4b](#4b-build-contaminant-index-and-map-reads or [Step 5b](#5b-remove-host-reads))
 
 
 **Output Data:**
@@ -2840,7 +2838,7 @@ htmlwidgets::saveWidget(ggplotly(p), glue("Metaphlan_decontam_species_barplot_GL
 
 **Input Data:**
 
-- `Metaphlan_filtered_species_table_GLlbsMetag.csv`(path to filtered species count per sample, output from [Step 8f](#10f-filter-kraken2-species-count-table))
+- `Metaphlan_filtered_species_table_GLlbsMetag.csv`(path to filtered species count per sample, output from [Step 9i](#9i-filter-metaphlan-species-count-table))
 - `/path/to/sample/metadata` (a file containing sample-wise metadata, mapping samplenames to group metadata)
 
 **Output Data:**
@@ -2882,7 +2880,7 @@ megahit -1 sample1_R1_decontam_GLlbsMetag.fastq.gz -2 sample1_R2_decontam_GLlbsM
 **Output data:**
 
 - sample1-assembly/final.contigs.fa (assembly file)
-- **sample1-assembly.log** (log file)
+- sample1-assembly.log (log file)
 
 <br>  
 

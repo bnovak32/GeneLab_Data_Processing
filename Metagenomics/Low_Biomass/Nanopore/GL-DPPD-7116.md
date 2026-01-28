@@ -27,12 +27,12 @@ Barbara Novak (GeneLab Data Processing Lead)
   - [**Pre-processing**](#pre-processing)
     - [1. Basecalling](#1-basecalling)
     - [2. Demultiplexing](#2-demultiplexing)
-      - [2a. Split fastq ](#2a-split-fastq)
-      - [2b. Concatenate files for each sample](#2b-concatenate-files-for-each-sample)
+      - [2a. Split Fastq](#2a-split-fastq)
+      - [2b. Concatenate Files For Each Sample](#2b-concatenate-files-for-each-sample)
     - [3. Raw Data QC](#3-raw-data-qc)
       - [3a. Raw Data QC](#3a-raw-data-qc)
       - [3b. Compile Raw Data QC](#3b-compile-raw-data-qc)
-    - [4. Quality filtering](#4-quality-filtering)
+    - [4. Quality Filtering](#4-quality-filtering)
       - [4a. Filter Raw Data](#4a-filter-raw-data)
       - [4a. Filtered Data QC](#4b-filtered-data-qc)
       - [4c. Compile Filtered Data QC](#4c-compile-filtered-data-qc)
@@ -41,19 +41,19 @@ Barbara Novak (GeneLab Data Processing Lead)
       - [5b. Trimmed Data QC](#5b-trimmed-data-qc)
       - [5c. Compile Trimmed Data QC](#5c-compile-trimmed-data-qc)
     - [6. Human Read Removal](#6-human-read-removal)
-      - [6a. Build Kraken2 Database](#6a-build-kraken2-database)
+      - [6a. Build Kraken2 Human Database](#6a-build-kraken2-human-database)
       - [6b. Remove Human Reads](#6b-remove-human-reads)
       - [6c. Compile Human Read Removal QC](#6c-compile-human-read-removal-qc)
     - [7. Contaminant Removal](#7-contaminant-removal)
       - [7a. Assemble Contaminants](#7a-assemble-contaminants)
       - [7b. Build Contaminant Index and Map Reads](#7b-build-contaminant-index-and-map-reads)
-      - [7c. Sort and Index Contaminant Reads](#7c-sort-and-index-contaminant-alignments)
+      - [7c. Sort and Index Contaminant Alignments](#7c-sort-and-index-contaminant-alignments)
       - [7d. Gather Contaminant Mapping Metrics](#7d-gather-contaminant-mapping-metrics)
       - [7e. Generate Decontaminated Read Files](#7e-generate-decontaminated-read-files)
       - [7f. Contaminant Removal QC](#7f-contaminant-removal-qc)
       - [7g. Compile Contaminant Removal QC](#7g-compile-contaminant-removal-qc)
     - [8. Host Read Removal](#8-host-read-removal)
-      - [8a. Build Kraken2 Database](#8a-build-kraken2-database)
+      - [8a. Build Kraken2 Host Database](#8a-build-kraken2-host-database)
       - [8b. Remove Host Reads](#8b-remove-host-reads)
       - [8c. Compile Host Read Removal QC](#8c-compile-host-read-removal-qc)
     - [9. R Environment Setup](#9-r-environment-setup)
@@ -61,14 +61,14 @@ Barbara Novak (GeneLab Data Processing Lead)
       - [9b. Define Custom Functions](#9b-define-custom-functions)
       - [9c. Set global variables](#9c-set-global-variables)
   - [**Read-based processing**](#read-based-processing)
-    - [10. Taxonomic profiling using kaiju](#10-taxonomic-profiling-using-kaiju)
+    - [10. Taxonomic Profiling Using Kaiju](#10-taxonomic-profiling-using-kaiju)
       - [10a. Build Kaiju Database](#10a-build-kaiju-database)
       - [10b. Kaiju Taxonomic Classification](#10b-kaiju-taxonomic-classification)
       - [10c. Compile Kaiju Taxonomy Results](#10c-compile-kaiju-taxonomy-results)
       - [10d. Convert Kaiju Output To Krona Format](#10d-convert-kaiju-output-to-krona-format)
       - [10e. Compile Kaiju Krona Reports](#10e-compile-kaiju-krona-reports)
       - [10f. Create Kaiju Species Count Table](#10f-create-kaiju-species-count-table)
-      - [10g. Read-in Tables](#10g-read-in-tables)
+      - [10g. Filter Kaiju Species Count Table](#10g-filter-kaiju-species-count-table)
       - [10h. Taxonomy Barplots](#10h-taxonomy-barplots)
       - [10i. Feature Decontamination](#10i-feature-decontamination)
     - [11. Taxonomic Profiling Using Kraken2](#11-taxonomic-profiling-using-kraken2)
@@ -79,10 +79,9 @@ Barbara Novak (GeneLab Data Processing Lead)
         - [11cii. Compile Kraken2 Taxonomy Reports](#11cii-compile-kraken2-taxonomy-reports)
       - [11d. Convert Kraken2 Output to Krona Format](#11d-convert-kraken2-output-to-krona-format)
       - [11e. Compile Kraken2 Krona Reports](#11e-compile-kraken2-krona-reports)
-      - [11f. Create Kraken2 Species Count Table](#11f-create-kraken2-species-count-table)
-      - [11g. Read-in Tables](#11g-read-in-tables)
-      - [11h. Taxonomy Barplots](#11h-taxonomy-barplots)
-      - [11i. Feature Decontamination](#11i-feature-decontamination)
+      - [11f. Filter Kraken2 Species Count Table](#11f-filter-kraken2-species-count-table)
+      - [11g. Taxonomy Barplots](#11h-taxonomy-barplots)
+      - [11h. Feature Decontamination](#11h-feature-decontamination)
   - [**Assembly-based processing**](#assembly-based-processing)
     - [12. Sample Assembly](#12-sample-assembly)
     - [13. Polish Assembly](#13-polish-assembly)
@@ -124,12 +123,12 @@ Barbara Novak (GeneLab Data Processing Lead)
       - [24a. Get KO Annotations Per MAG](#24a-get-ko-annotations-per-mag)
       - [24b. Summarize KO Annotations With KEGG-Decoder](#24b-summarize-ko-annotations-with-kegg-decoder)
     - [25. Decontamination and Visualization of Contig- and Gene-taxonomy and Gene-function Outputs](#25-decontamination-and-visualization-of-contig--and-gene-taxonomy-and-gene-function-outputs)
-      - [25a. Gene-level taxonomy heatmaps](#25a-gene-level-taxonomy-heatmaps)
-      - [25b. Gene-level taxonomy decontamination](#25b-gene-level-taxonomy-decontamination)
-      - [25c. Gene-level KO functions heatmaps](#25c-gene-level-ko-functions-heatmaps)
-      - [25d. Gene-level KO functions decontamination](#25d-gene-level-ko-functions-decontamination)
-      - [25e. Contig-level heatmaps](#25e-contig-level-heatmaps)
-      - [25f. Contig-level decontamination](#25f-contig-level-decontamination)
+      - [25a. Gene-level Taxonomy Heatmaps](#25a-gene-level-taxonomy-heatmaps)
+      - [25b. Gene-level Taxonomy Decontamination](#25b-gene-level-taxonomy-decontamination)
+      - [25c. Gene-level KO Functions Heatmaps](#25c-gene-level-ko-functions-heatmaps)
+      - [25d. Gene-level KO Functions Decontamination](#25d-gene-level-ko-functions-decontamination)
+      - [25e. Contig-level Heatmaps](#25e-contig-level-heatmaps)
+      - [25f. Contig-level Decontamination](#25f-contig-level-decontamination)
 
 
 ---
@@ -157,7 +156,6 @@ Barbara Novak (GeneLab Data Processing Lead)
 |Minimap2| 2.28 | [https://github.com/lh3/minimap2](https://github.com/lh3/minimap2) |
 |MultiQC| 1.27.1 |[https://multiqc.info/](https://multiqc.info/)|
 |Medaka| 2.1.1 | [https://github.com/nanoporetech/medaka](https://github.com/nanoporetech/medaka) |
-|MetaPhlAn| 4.1.0 |[https://github.com/biobakery/MetaPhlAn](https://github.com/biobakery/MetaPhlAn)|
 |NanoPlot| 1.44.1 | [https://github.com/wdecoster/NanoPlot](https://github.com/wdecoster/NanoPlot)|
 |Porechop| 0.2.4 | [https://github.com/rrwick/Porechop](https://github.com/rrwick/Porechop) |
 |Prodigal| 2.6.3 |[https://github.com/hyattpd/Prodigal#prodigal](https://github.com/hyattpd/Prodigal#prodigal)|
@@ -178,6 +176,7 @@ Barbara Novak (GeneLab Data Processing Lead)
 > Exact processing commands and output files listed in **bold** below are included with each Low Biomass Metagenomics Seq processed dataset in the [Open Science Data Repository (OSDR)](https://osdr.nasa.gov/bio/repo/).  
 
 ## Pre-processing
+
 
 ### 1. Basecalling
 
@@ -525,7 +524,7 @@ multiqc --zip-data-dir \
 
 ### 6. Human Read Removal
 
-#### 6a. Build Kraken2 Database
+#### 6a. Build Kraken2 Human Database
 
 > **Note:** It is recommended to use NCBI genome files with kraken2 because sequences not downloaded from 
 NCBI may require explicit assignment of taxonomy information before they can be used to build the 
@@ -536,31 +535,33 @@ database, as mentioned in the [Kraken2 Documentation](https://github.com/Derrick
 kraken2-build --download-taxonomy --db kraken2-human-db/
 
 # Add genomic sequences to your database's genomic library
-kraken2-build --add-to-library human.fasta --db kraken2-human-db/ \
-              --no-masking --kmer-length 35 --minimizer-length 31
-
+kraken2-build --add-to-library human.fasta --db kraken2-human-db/ --no-masking
+             
 # Build the database
-kraken2-build --build --db kraken2-human-db/
+kraken2-build --build --db kraken2-human-db/ --kmer-len 35 --minimizer-len 31
 
 # Clean up intermediate files
 kraken2-build --clean --db kraken2-human-db/
 ```
+
 **Parameter Definitions:**
 - `--download-taxonomy` - Instructs kraken2-build to download the NCBI taxonomic information.
 - `--db` - Specifies the name of the directory for the kraken2 database
-- `--add-to-library` - Instructs kraken2-build to add the contents of a file (`human.fasta`) to the kraken2 DB library
-- `--no-masking` - Disables masking of low-complexity sequences. For additional 
+- `--add-to-library` - Instructs kraken2-build to add the contents of a file to the kraken2 DB library
+  - `--no-masking` - Disables masking of low-complexity sequences. For additional 
                    information see the [kraken documentation for masking](https://github.com/DerrickWood/kraken2/wiki/Manual#masking-of-low-complexity-sequences).
 - `--build` - Instructs kraken2-build to build the kraken2 DB from the library files
+  - `--kmer-len` - K-mer length in bp (default: 35).
+  - `--minimizer-len` - Minimizer length in bp (default: 31)
 - `--clean` - Instructs kraken2-build to remove unneeded intermediate files.
 
 **Input Data:**
 
-- `human.fasta` (fasta file containing human genome, SPECIFY WHERE THIS GEONOME CAME FROM)
+- `human.fasta` (fasta file containing human genome, for example, the human genome fasta downloaded from https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.39_GRCh38.p13/GCF_000001405.39_GRCh38.p13_genomic.fna.gz)
 
 **Output Data:**
 
-- kraken2_human_db/ - Kraken2 human database directory, containing hash.k2d, opts.k2d, and taxo.k2d files 
+- kraken2_human_db/ (Kraken2 human database directory, containing hash.k2d, opts.k2d, and taxo.k2d files)
 
 #### 6b. Remove Human Reads
 
@@ -629,7 +630,6 @@ multiqc --zip-data-dir \
 - **HRrm_multiqc_GLlblMetag_data.zip** (zip archive containing multiqc output data)
 
 <br>
-
 
 ---
 
@@ -864,7 +864,7 @@ multiqc --zip-data-dir \
 
 If the samples were derived from a host organism other than human, potential host reads should be identified and removed. This step is optional.
 
-#### 8a. Build Kraken2 Database
+#### 8a. Build Kraken2 Host Database
 
 > **Note:** It is recommended to use NCBI genome files with kraken2 because sequences not downloaded from 
 NCBI may require explicit assignment of taxonomy information before they can be used to build the 
@@ -875,32 +875,35 @@ database, as mentioned in the [Kraken2 Documentation](https://github.com/Derrick
 kraken2-build --download-taxonomy --db kraken2-${hostname}-db/
 
 # Add genomic sequences to your database's genomic library
-kraken2-build --add-to-library ${hostname}.fasta --db kraken2-${hostname}-db/ \
-              --no-masking --kmer-length 35 --minimizer-length 31
+kraken2-build --add-to-library ${hostname}.fasta --db kraken2-${hostname}-db/ --no-masking 
 
 # Build the database
-kraken2-build --build --db kraken2-${hostname}-db/
+kraken2-build --build --db kraken2-${hostname}-db/ --kmer-length 35 --minimizer-length 31
 
 # Clean up intermediate files
 kraken2-build --clean --db kraken2-${hostname}-db/
 ```
+
 **Parameter Definitions:**
+
 - `--download-taxonomy` - Instructs kraken2-build to download the NCBI taxonomic information.
 - `--db` - Specifies the name of the directory for the kraken2 database
 - `--add-to-library` - Instructs kraken2-build to add the contents of a file (`${hostname}.fasta`) to the kraken2 DB library
-- `--no-masking` - Disables masking of low-complexity sequences. For additional 
-                   information see the [kraken documentation for masking](https://github.com/DerrickWood/kraken2/wiki/Manual#masking-of-low-complexity-sequences).
+  - `--no-masking` - Disables masking of low-complexity sequences. For additional 
+                     information see the [kraken documentation for masking](https://github.com/DerrickWood/kraken2/wiki/Manual#masking-of-low-complexity-sequences).
 - `--build` - Instructs kraken2-build to build the kraken2 DB from the library files
+  - `--kmer-len` - K-mer length in bp (default: 35).
+  - `--minimizer-len` - Minimizer length in bp (default: 31)
 - `--clean` - Instructs kraken2-build to remove unneeded intermediate files.
 - `{$hostname}` - Specifies the name of the host organism used to uniquely identify the kraken2 database
 
 **Input Data:**
 
-- `${hostname}.fasta` (fasta file containing host genome)
+- `${hostname}.fasta` (fasta file containing host genome, for example, the mouse genome fasta downloaded from https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/635/GCF_000001635.27_GRCm39/GCF_000001635.27_GRCm39_genomic.fna.gz for mouse)
 
 **Output Data:**
 
-- kraken2_${hostname}_db/ - Kraken2 host database directory, containing hash.k2d, opts.k2d, and taxo.k2d files 
+- kraken2_${hostname}_db/ (Kraken2 host database directory, containing hash.k2d, opts.k2d, and taxo.k2d files)
 
 
 #### 8b. Remove Host Reads
@@ -989,7 +992,7 @@ library(pavian)
 
 #### 9b. Define Custom Functions
 
-##### get_last_assignment()
+#### get_last_assignment()
 <details>
   <summary>retrieves the last taxonomy assignment from a taxonomy string</summary>
 
@@ -1021,9 +1024,10 @@ library(pavian)
   - `remove_prefix=` - a character string containing a regular expression to be matched and removed, default=`NULL`
 
   **Returns:** the last taxonomy assignment listed in the `taxonomy_string`
+
 </details>
 
-##### mutate_taxonomy()
+#### mutate_taxonomy()
 <details>
   <summary>mutate taxonomy column to contain the lowest taxonomy assignment</summary>
 
@@ -1045,6 +1049,7 @@ library(pavian)
     return(df)
   }
   ```
+
   **Custom Functions Used:**
   - [get_last_assignment()](#get_last_assignment)
 
@@ -1056,7 +1061,7 @@ library(pavian)
 
 </details>
 
-##### process_kaiju_table()
+#### process_kaiju_table()
 <details>
   <summary>reformat kaiju output table</summary>
 
@@ -1105,8 +1110,7 @@ library(pavian)
 
 </details>
 
-
-##### merge_kraken_reports()
+#### merge_kraken_reports()
 <details>
   <summary>merge and process multiple kraken outputs to one species table</summary>
 
@@ -1146,9 +1150,6 @@ library(pavian)
     return(species_table)
   }
   ```
-  **Custom Functions Used:**
-  - [read_reports()]()
-
 
   **Function Parameter Definitions:**
   - `reports_dir` - path to a directory containing kraken2 reports 
@@ -1157,7 +1158,7 @@ library(pavian)
 
 </details>
 
-##### get_abundant_features()
+#### get_abundant_features()
 <details>
   <summary>Find abundant features based on the sum of feature values</summary>
   
@@ -1177,10 +1178,11 @@ library(pavian)
   - `mat` - a feature count matrix with features as rows and samples as columns
   - `cpm_threshold = 1000` - threshold to identify abundant features
 
-  **Returns:** a species relative abundance matrix, `abund_features.m`, with samples and species as rows and columns, respectively.
+  **Returns:** a matrix, `abund_features.m`, holding the features that pass the requested threshold
+  
 </details>
 
-##### count_to_rel_abundance()
+#### count_to_rel_abundance()
 <details>
   <summary>Convert species count matrix to relative abundance matrix</summary>
 
@@ -1214,7 +1216,7 @@ library(pavian)
 </details>
 
 
-##### filter_rare()
+#### filter_rare()
 <details>
   <summary>filter out rare and non_microbial taxonomy assignments based on relative abundance</summary>
 
@@ -1253,9 +1255,10 @@ library(pavian)
   - `threshold=` - abundance threshold used to determine if the relative abundance is rare, value denotes a percentage between 0 and 100.
 
   **Returns:** dataframe, `abund_table`, with rare and non_microbial/unwanted species removed
+
 </details>
 
-##### group_low_abund_taxa()
+#### group_low_abund_taxa()
 <details>
   <summary>Group rare taxa or return a table with only rare taxa</summary>
 
@@ -1315,7 +1318,7 @@ library(pavian)
 
 </details>
 
-##### make_plot()
+#### make_plot()
 <details>
   <summary>create bar plot of relative abundance</summary>
 
@@ -1360,7 +1363,7 @@ library(pavian)
 
 </details>
 
-##### make_barplot()
+#### make_barplot()
 <details>
   <summary>Creates barplots from a feature table file</summary>
   
@@ -1412,11 +1415,11 @@ library(pavian)
   - `publication_format` - a ggplot::theme object specifying a custom theme for plotting, from [Step 9c](#9c-set-global-variables)
   - `custom_palette` - a vector of strings specifying a custom color palette for coloring plots, from [Step 9c](#9c-set-global-variables)
 
-  **Returns:** a relative abundance stacked bar plot, `p`
+  **Returns:** a relative abundance stacked bar plot, `p`, as output from [make_plot](#make_plot)
 
 </details>
 
-##### make_heatmap()
+#### make_heatmap()
 <details>
   <summary>Creates heatmaps from a feature table file</summary>
   
@@ -1425,21 +1428,6 @@ library(pavian)
                            samples_column = "sample_id", group_column = "group", 
                            output_prefix, assay_suffix = "_GLlblMetag",
                            custom_palette) {
-    # Prepare feature table
-    # feature_table <- read_csv(feature_table_file) %>% as.data.frame
-    # rownames(feature_table) <- feature_table[[1]]
-    # feature_table <- feature_table[, -1] %>% as.matrix()
-
-    # # Prepare metadata
-    # metadata <- read_delim(metadata_file, delim = ",") %>% as.data.frame
-    # row.names(metadata) <- metadata[, samples_column]
-
-    # # Get common samples and re-arrange feature table and metadata
-    # common_samples <- intersect(colnames(feature_table), rownames(metadata))
-    # feature_table <- feature_table[, common_samples]
-    # metadata <- metadata[common_samples, ]
-    # metadata <- metadata %>% arrange(!!sym(group_column))
-
     # Create column annotation
     col_annotation <- as.data.frame(metadata)[, group_column, drop = FALSE]
 
@@ -1484,9 +1472,11 @@ library(pavian)
   - `assay_suffix` - a character string specifying the GeneLab assay suffix (default: "_GLlblMetag")
   - `custom_palette` - a vector of strings specifying a custom color palette for coloring plots, from [Step 9c](#9c-set-global-variables)
 
+  **Returns:** heatmap png file, `{output_prefix}_heatmap{assay_suffix}.png`, of species/functions across samples from the input feature table
+
 </details>
 
-##### run_decontam()
+#### run_decontam()
 <details>
   <summary>Feature table decontamination with decontam</summary>
 
@@ -1555,9 +1545,10 @@ library(pavian)
                           (not a contaminant) should be rejected in favor of the alternate hypothesis (contaminant).
 
   **Returns:** dataframe, `contamdf`, containing detailed decontam results
+
 </details>
 
-##### feature_decontam() 
+#### feature_decontam() 
 <details>
   <summary>decontaminate a feature table</summary>
   
@@ -1620,6 +1611,7 @@ library(pavian)
     }
   }
   ```
+
   **Custom Functions Used:**
   - [run_decontam()](#run_decontam)
 
@@ -1646,7 +1638,7 @@ library(pavian)
 
 </details>
 
-##### process_taxonomy()
+#### process_taxonomy()
 <details>
   <summary>process a taxonomy assignment table</summary>
 
@@ -1683,7 +1675,7 @@ library(pavian)
 
 </details>
 
-##### fix_names()
+#### fix_names()
 <details>
   <summary>clean taxonomy names</summary>
 
@@ -1716,8 +1708,7 @@ library(pavian)
 
 </details>
 
-
-##### read_assembly_coverage_table()
+#### read_assembly_coverage_table()
 <details>
   <summary>Read Assembly-based coverage annotation table</summary>
 
@@ -1759,8 +1750,7 @@ library(pavian)
 
 </details>
 
-
-##### get_sample_names()
+#### get_sample_names()
 <details>
   <summary>retrieve sample names for which assemblies were generated</summary>
 
@@ -1829,6 +1819,7 @@ custom_palette <- custom_palette[-c(21:23,
 ---
 
 ## Read-based Processing
+
 
 ### 10. Taxonomic Profiling Using Kaiju
 
@@ -1930,7 +1921,7 @@ sed -i -E 's/file/sample/' merged_kaiju_table.tsv
 
 - merged_kaiju_table.tsv (compiled kaiju summary table at the species level)
 
-#### 9d. Convert Kaiju Output To Krona Format
+#### 10d. Convert Kaiju Output To Krona Format
 
 ```bash
 kaiju2krona -u \
@@ -1950,7 +1941,7 @@ kaiju2krona -u \
 
 **Input Data:**
 - kaiju-db/names.dmp (kaiju taxonomy names file, output from [Step 10a](#10a-build-kaiju-database))
-- kaiju-db/nodes.dmp (kaiju taxonomy hierarchy nodes file, output from [Step 10a](#9a-build-kaiju-database))
+- kaiju-db/nodes.dmp (kaiju taxonomy hierarchy nodes file, output from [Step 10a](#10a-build-kaiju-database))
 - sample_kaiju.out (kaiju output file, output from [Step 10b](#10b-kaiju-taxonomic-classification))
 
 **Output Data:**
@@ -1976,28 +1967,23 @@ ktImportText  -o kaiju-report.html ${KTEXT_FILES[*]}
 
 **Parameter Definitions:**
 
-**find**
-
+*find*
 - `-type f` -  Specifies that the type of file to find is a regular file.
 - `-name "*.krona"` - Specifies to find files ending with the .krona suffix.  
 
-**sort**
-
+*sort*
 - `-u` - Specifies to perform a unique sort.
 - `-V` - Specifies to perform a mixed type of sorting with names containing numbers within text.
 - `> krona_files.txt` - Redirects the sorted list to a separate text file.
 
-**basename**
-
+*basename*
 - `-a` - Support multiple arguments and treat each as a file name.
 - `-s '.krona'` - Remove trailing '.krona' suffix.
 
-**paste**
-
+*paste*
 - `-d','` - Paste both krona and sample files together line by line delimited by comma ','.
 
-**ktImportText**
-
+*ktImportText*
 - `-o` - Specifies the compiled output html file name.
 - `${KTEXT_FILES[*]}` - An array positional argument with the following content: 
                         sample_1.krona,sample_1 sample_2.krona,sample_2 ... sample_n.krona,sample_n.
@@ -2077,7 +2063,6 @@ write_csv(x = table2write, file = output_file)
 ```
 
 **Custom Functions Used:**
-
 - [group_low_abund_taxa()](#group_low_abund_taxa)
 
 **Parameter Definitions:**
@@ -2088,7 +2073,7 @@ write_csv(x = table2write, file = output_file)
 
 **Input Data:**
 
-- kaiju_species_table_GLlblMetag.csv (path to kaiju species table from [Step 9f](#9f-create-kaiju-species-count-table))
+- kaiju_species_table_GLlblMetag.csv (path to kaiju species table from [Step 10f](#10f-create-kaiju-species-count-table))
 
 **Output Data:**
 
@@ -2096,7 +2081,7 @@ write_csv(x = table2write, file = output_file)
 
 ---
 
-#### 10h. Taxonomy barplots
+#### 10h. Taxonomy Barplots
 
 ```R
 library(tidyverse)
@@ -2145,8 +2130,8 @@ htmlwidgets::saveWidget(ggplotly(p), glue("kaiju_filtered_species_barplot_GLlblM
 
 **Input Data:**
 
-- `kaiju_species_table_GLlblMetag.csv` (a file containing the species count table, output from [Step 9f](#9f-create-kaiju-species-count-table))
-- `kaiju_filtered_species_table_GLlblMetag.csv` (a file containing the filtered species count table, output from [Step 9g](#9g-filter-kaiju-species-count-table))
+- `kaiju_species_table_GLlblMetag.csv` (a file containing the species count table, output from [Step 10f](#10f-create-kaiju-species-count-table))
+- `kaiju_filtered_species_table_GLlblMetag.csv` (a file containing the filtered species count table, output from [Step 10g](#10g-filter-kaiju-species-count-table))
 - `/path/to/sample/metadata` (a file containing sample-wise metadata, mapping samplenames to group metadata)
 
 
@@ -2158,7 +2143,7 @@ htmlwidgets::saveWidget(ggplotly(p), glue("kaiju_filtered_species_barplot_GLlblM
 - **kaiju_filtered_species_barplot_GLlblMetag.html** (interactive taxonomy barplot after filtering rare and non-microbial taxa)
 
 
-#### 10i. Feature decontamination
+#### 10i. Feature Decontamination
 
 > Feature (species) decontamination with decontam. Decontam is an R package that statistically identifies contaminating features in a feature table
 
@@ -2206,6 +2191,7 @@ htmlwidgets::saveWidget(ggplotly(p), glue("kaiju_decontam_species_barplot_GLlblM
 - [count_to_rel_abundance()](#count_to_rel_abundance)
 
 **Parameter Definitions:**
+
 - `metadata_table` - path to a file with samples as rows and columns describing each sample
 - `feature_table_file` - path to a tab separated samples feature table i.e. species/functions 
                          table with species/functions as the first column and samples as other columns.
@@ -2213,14 +2199,14 @@ htmlwidgets::saveWidget(ggplotly(p), glue("kaiju_decontam_species_barplot_GLlblM
 
 **Input Data:**
 
-- `kaiju_filtered_species_table_GLlblMetag.csv`(path to filtered species count per sample, output from [Step 9g](#9g-filter-kaiju-species-count-table))
+- `kaiju_filtered_species_table_GLlblMetag.csv`(path to filtered species count per sample, output from [Step 10g](#10g-filter-kaiju-species-count-table))
 - `/path/to/sample/metadata` (a file containing sample-wise metadata, mapping samplenames to group metadata)
 
 **Output Data:**
 
 - **kaiju_decontam_results_GLlblMetag.csv** (decontam's result table, output from [feature_decontam() function](#feature_decontam))
 - **kaiju_decontam_species_table_GLlblMetag.csv** (decontaminated species table, output from [feature_decontam() function](#feature_decontam))
-- **kaiju_decontam_species_barplot_GLlblMetag.png** (barplot after filtering out contaminants)
+- kaiju_decontam_species_barplot_GLlblMetag.png (barplot after filtering out contaminants)
 - **kaiju_decontam_species_barplot_GLlblMetag.html** (barplot after filtering out contaminants)
 
 <br>
@@ -2258,14 +2244,15 @@ tar -xvzf k2_pluspfp.tar.gz
 
 **Parameter Definitions:**
 
-**wget**
-
+*wget*
 - `O` - Name of file to download the url content to.
 - `--timeout=3600` - Specifies the network timeout in seconds.
 - `--tries=0` - Retry download infinitely.
 - `--continue` -  Continue getting a partially-downloaded file.
 - `*_URL` - Position arguement specifying the url to download a particular resource from.
 
+*tar*
+- `-xvzf` - unpack the specified *tar.gz archive in verbose mode
 
 **Input Data:**
 
@@ -2318,7 +2305,7 @@ kraken2 --db kraken2-db/ \
 ##### 11ci. Create Merged Kraken2 Taxonomy Table
 
 ```R
-species_table <- merge_kraken_reports(reports-dir='/path/to/kraken2/reports')
+species_table <- merge_kraken_reports(reports-dir = '/path/to/kraken2/reports')
 write_csv(x = species_table, file = "kraken2_species_table_GLlblMetag.csv")
 ```
 
@@ -2328,15 +2315,9 @@ write_csv(x = species_table, file = "kraken2_species_table_GLlblMetag.csv")
 
 **Parameter Definitions:**
 
-- `file_path` - path to compiled kaiju table at the species taxon level
+- `reports-dir` - path to compiled kraken reports
 - `x`  - feature table dataframe to write to file
-- `file` - path to where to write kaiju count table per sample
-
-**Parameter Definitions:**
-
-- `--output` - Specifies the name of the kraken2 compiled results output file.
-- `--report-files` - Specifies the name of each input kraken2 report file to compile.
-- `--sample-names` - Specifies the name of each sample. 
+- `file` - path to where to write kraken2 species table table
 
 **Input Data:**
 
@@ -2413,28 +2394,23 @@ ktImportText -o kraken2-report_GLlblMetag.html ${KTEXT_FILES[*]}
 
 **Parameter Definitions:**
 
-**find**
-
+*find*
 - `-type f` -  Specifies that the type of file to find is a regular file.
 - `-name "*.krona"` - Specifies to find files ending with the .krona suffix.  
 
-**sort**
-
+*sort*
 - `-u` - Specifies to perform a unique sort.
 - `-V` - Specifies to perform a mixed type of sorting with names containing numbers within text.
 - `> {}.txt` - Redirects the sorted list to a separate text file.
 
-**basename**
-
+*basename*
 - `--multiple` - Support multiple arguments and treat each as a file name.
 - `--suffix='.krona'` - Remove a trailing '.krona' suffix.
 
-**paste**
-
+*paste*
 - `-d','` - Paste both krona and sample files together line by line delimited by comma ','.
 
-**ktImportText**
-
+*ktImportText*
 - `-o` - Specifies the compiled output html file name.
 - `${KTEXT_FILES[*]}` - An array positional arguement with the following content: sample_1.krona,sample_1 sample_2.krona,sample_2 .. sample_n.krona,sample_n.
 
@@ -2478,7 +2454,6 @@ write_csv(x = table2write, file = output_file)
 ```
 
 **Custom Functions Used:**
-
 - [group_low_abund_taxa()](#group_low_abund_taxa)
 
 **Parameter Definitions:**
@@ -2497,8 +2472,7 @@ write_csv(x = table2write, file = output_file)
 
 ---
 
-
-#### 11g. Taxonomy barplots
+#### 11g. Taxonomy Barplots
 
 ```R
 library(tidyverse)
@@ -2558,7 +2532,7 @@ htmlwidgets::saveWidget(ggplotly(p), glue("kraken2_filtered_species_barplot_GLlb
 - **kraken2_filtered_species_barplot_GLlblMetag.html** (interactive taxonomy barplot after filtering rare and non-microbial taxa)
 
 
-#### 11h. Feature decontamination
+#### 11h. Feature Decontamination
 
 > Feature (species) decontamination with decontam. Decontam is an R package that statistically 
   identifies contaminating features in a feature table
@@ -2607,6 +2581,7 @@ htmlwidgets::saveWidget(ggplotly(p), glue("kraken2_decontam_species_barplot_GLlb
 - [count_to_rel_abundance()](#count_to_rel_abundance)
 
 **Parameter Definitions:**
+
 - `metadata_table` - path to a file with samples as rows and columns describing each sample
 - `feature_table_file` - path to a tab separated samples feature table i.e. species/functions 
                           table with species/functions as the first column and samples as other columns.
@@ -2621,7 +2596,7 @@ htmlwidgets::saveWidget(ggplotly(p), glue("kraken2_decontam_species_barplot_GLlb
 
 - **kraken2_decontam_results_GLlblMetag.csv** (decontam's result table, output from [feature_decontam() function](#feature_decontam))
 - **kraken2_decontam_species_table_GLlblMetag.csv** (decontaminated species table, output from [feature_decontam() function](#feature_decontam))
-- **kraken2_decontam_species_barplot_GLlblMetag.png** (barplot after filtering out contaminants)
+- kraken2_decontam_species_barplot_GLlblMetag.png (barplot after filtering out contaminants)
 - **kraken2_decontam_species_barplot_GLlblMetag.html** (barplot after filtering out contaminants)
 
 <br>
@@ -2629,6 +2604,7 @@ htmlwidgets::saveWidget(ggplotly(p), glue("kraken2_decontam_species_barplot_GLlb
 ---
 
 ## Assembly-based Processing
+
 
 ### 12. Sample Assembly
 
@@ -2695,6 +2671,8 @@ mv sample/consensus.fasta sample_polished.fasta
 **Output Data:**
 
 - sample_polished.fasta (polished sample assembly)
+
+<br>
 
 ---
 
@@ -3227,6 +3205,7 @@ rm sample*tmp sample-gene-coverages.tsv sample-annotations.tsv sample-gene-tax-o
 ---
 
 ### 21. Combine Contig-level Coverage and Taxonomy For Each Sample
+
 > **Note:**  
 > Just uses `paste`, `sed`, and `awk` standard Unix commands to combine contig-level coverage and taxonomy into one table for each sample.
 
@@ -3287,7 +3266,6 @@ mv "Combined-gene-level-taxonomy-coverages.tsv Combined-gene-level-taxonomy-cove
 **Parameter Definitions:**  
 
 - `*-gene-coverage-annotation-and-tax_GLlbsMetag.tsv` - Positional arguments specifying the input tsv files, can be provided as a space-delimited list of files, or with wildcards like above.
-
 - `-o` – Specifies the output file prefix.
 
 
@@ -3379,7 +3357,7 @@ zip -r sample-bins.zip sample-bins
 - sample-bins/sample-bin\*.fasta (fasta files of recovered bins)
 - **sample-bins.zip** (zip file containing fasta files of recovered bins)
 
-#### 23b. Bin quality assessment 
+#### 23b. Bin Quality Assessment 
 > Utilizes the default `checkm` database available [here](https://data.ace.uq.edu.au/public/CheckM_databases/checkm_data_2015_01_16.tar.gz), `checkm_data_2015_01_16.tar.gz`.
 
 ```bash
@@ -3595,7 +3573,7 @@ KEGG-decoder -v interactive \
 
 ### 25. Decontamination and Visualization of Contig- and Gene-taxonomy and Gene-function Outputs
 
-#### 25a. Gene-level taxonomy heatmaps
+#### 25a. Gene-level Taxonomy Heatmaps
 
 ```R
 library(tidyverse)
@@ -3654,7 +3632,7 @@ make_heatmap(metadata, species_gene_table,
 - gene_taxonomy_table.csv (aggregated gene taxonomy table with samples in columns and species in rows)
 - **Combined-gene-level-taxonomy_heatmap_GLlblMetag.png** (heatmap of all gene taxonomy assignments)
 
-#### 25b. Gene-level taxonomy decontamination
+#### 25b. Gene-level Taxonomy Decontamination
 
 ```R
 library(tidyverse)
@@ -3721,7 +3699,7 @@ make_heatmap(metadata, decontaminated_table,
 - **Combined-gene-level-taxonomy_decontam_species_table_GLlblMetag.csv** (decontaminated species table)
 - **Combined-gene-level-taxonomy_decontam_heatmap_GLlblMetag.png** (gene-level taxonomy heatmap after filtering out contaminants)
 
-#### 25c. Gene-level KO functions heatmaps
+#### 25c. Gene-level KO Functions Heatmaps
 
 ```R
 library(tidyverse)
@@ -3780,7 +3758,7 @@ make_heatmap(metadata, table2write,
 - genes-KO-functions_table.csv (aggregated and subsetted gene KO function table)
 - **Combined-gene-level-KO-function_heatmap_GLlblMetag.png** (heatmap of all gene-level KO function assignments)
 
-#### 25d. Gene-level KO functions decontamination
+#### 25d. Gene-level KO Functions Decontamination
 
 ```R
 library(tidyverse)
@@ -3906,7 +3884,7 @@ make_heatmap(metadata, species_contig_table,
 - contig_taxonomy_table.csv (aggregated contig taxonomy table with samples in columns and species in rows)
 - **Combined-contig-level-taxonomy_heatmap_GLlblMetag.png** (heatmap of all contig taxonomy assignments)
 
-#### 25g. Contig-level decontamination
+#### 25g. Contig-level Decontamination
 
 ```R
 library(tidyverse)
@@ -3957,6 +3935,7 @@ make_heatmap(metadata, decontaminated_table,
 - [make_heatmap()](#make_plot)
 
 **Parameter Definitions:**
+
 - `metadata_table` - path to a file with samples as rows and columns describing each sample
 - `feature_table_file` - path to a tab separated samples feature table containing contig-level coverage data 
                          species/functions as the first column and samples as other columns.
