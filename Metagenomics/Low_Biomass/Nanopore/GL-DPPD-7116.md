@@ -557,7 +557,7 @@ kraken2-build --clean --db kraken2-human-db/
 
 **Input Data:**
 
-- `human.fasta` (fasta file containing human genome, for example, the human genome fasta downloaded from https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.39_GRCh38.p13/GCF_000001405.39_GRCh38.p13_genomic.fna.gz)
+- human.fasta (fasta file containing human genome, for example, the human genome fasta downloaded from https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.39_GRCh38.p13/GCF_000001405.39_GRCh38.p13_genomic.fna.gz)
 
 **Output Data:**
 
