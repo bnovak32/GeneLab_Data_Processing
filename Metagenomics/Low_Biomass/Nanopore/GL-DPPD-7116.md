@@ -376,7 +376,7 @@ filtlong --min_length 200 --min_mean_q 8 /path/to/raw_data/sample.fastq.gz > sam
 
 ```bash
 NanoPlot --only-report \
-         --prefix sample_filtered_ \
+         --prefix sample_filtered_GLlblMetag_ \
          --outdir /path/to/filtered_nanoplot_output \
          --threads NumberOfThreads \
          --fastq \
@@ -398,7 +398,7 @@ NanoPlot --only-report \
 
 **Output Data:**
 
-- **/path/to/filtered_nanoplot_output/sample_filtered_NanoPlot-report_GLlblMetag.html** (NanoPlot html summary)
+- **/path/to/filtered_nanoplot_output/sample_filtered_GLlblMetag_NanoPlot-report.html** (NanoPlot html summary)
 - /path/to/filtered_nanoplot_output/sample_filtered_NanoPlot_\<date\>_\<time\>.log (NanoPlot log file)
 - /path/to/filtered_nanoplot_output/sample_filtered_NanoStats.txt (text file containing basic statistics)
 
@@ -422,7 +422,7 @@ multiqc  --zip-data-dir \
 
 **Input Data:**
 
-- /path/to/filtered_nanoplot_output/*filtered_NanoStats.txt (NanoPlot output data, from [Step 4b](#4b-filtered-data-qc))
+- /path/to/filtered_nanoplot_output/*filtered_GLlblMetag_NanoStats.txt (NanoPlot output data, from [Step 4b](#4b-filtered-data-qc))
 
 **Output Data:**
 
@@ -465,7 +465,7 @@ porechop --input sample_filtered.fastq \
 
 ```bash
 NanoPlot --only-report \
-         --prefix sample_trimmed_ \
+         --prefix sample_trimmed_GLlblMetag_ \
          --outdir /path/to/trimmed_nanoplot_output \
          --threads NumberOfThreads \
          --fastq \
@@ -487,7 +487,7 @@ NanoPlot --only-report \
 
 **Output Data:**
 
-- **/path/to/trimmed_nanoplot_output/sample_trimmed_NanoPlot-report_GLlblMetag.html** (NanoPlot html summary)
+- **/path/to/trimmed_nanoplot_output/sample_trimmed_GLlblMetag_NanoPlot-report.html** (NanoPlot html summary)
 - /path/to/trimmed_nanoplot_output/sample_trimmed_NanoPlot_\<date\>_\<time\>.log (NanoPlot log file)
 - /path/to/trimmed_nanoplot_output/sample_trimmed_NanoStats.txt (text file containing basic statistics)
 
@@ -511,7 +511,7 @@ multiqc --zip-data-dir \
 
 **Input Data:**
 
-- /path/to/trimmed_nanoplot_output/*trimmed_NanoStats.txt (NanoPlot output data, output from [Step 5b](#5b-trimmed-data-qc))
+- /path/to/trimmed_nanoplot_output/*trimmed_GLlblMetag_NanoStats.txt (NanoPlot output data, output from [Step 5b](#5b-trimmed-data-qc))
 
 **Output Data:**
 
@@ -572,11 +572,11 @@ kraken2 --db kraken2_human_db \
         --use-names \
         --output sample-kraken2-output.txt \
         --report sample-kraken2-report.tsv \
-        --unclassified-out sample_HRrm_GLlblMetag.fastq \
+        --unclassified-out sample_GLlblMetag_HRrm.fastq \
         sample_trimmed_fastq.gz
 
 # gzip fastq output file
-gzip sample_HRrm_GLlblMetag.fastq
+gzip sample_GLlblMetag_HRrm.fastq
 ```
 
 **Parameter Definitions:**
@@ -599,7 +599,7 @@ gzip sample_HRrm_GLlblMetag.fastq
 
 - sample-kraken2-output.txt (kraken2 read-based output file (one line per read))
 - sample-kraken2-report.tsv (kraken2 report output file (one line per taxa, with number of reads assigned to it))
-- **sample_HRrm_GLlblMetag.fastq.gz** (filtered and trimmed sample reads with human reads removed, gzipped fastq file)
+- **sample_GLlblMetag_HRrm.fastq.gz** (filtered and trimmed sample reads with human reads removed, gzipped fastq file)
 
 
 #### 6c. Compile Human Read Removal QC
@@ -643,7 +643,7 @@ multiqc --zip-data-dir \
 flye --meta \
      --threads NumberOfThreads \
      --out-dir /path/to/contaminant_assembly \
-     --nano-raw /path/to/blank_samples/\*_HRrm_GLlblMetag.fastq.gz
+     --nano-raw /path/to/blank_samples/\*_GLlblMetag_HRrm.fastq.gz
 
 # rename output
 mv assembly.fasta blank-assembly.fasta
@@ -659,7 +659,7 @@ mv flye.log blank-flye.log
 
 **Input Data**
 
-- *_HRrm_GLlblMetag.fastq.gz (one or more filtered, trimmed, and HRrm reads from blank (negative control) samples, output from [Step 6b](#6b-remove-human-reads))
+- *_GLlblMetag_HRrm.fastq.gz (one or more filtered, trimmed, and HRrm reads from blank (negative control) samples, output from [Step 6b](#6b-remove-human-reads))
 
 **Output Data**
 
@@ -683,7 +683,7 @@ minimap2 -t NumberOfThreads \
          -a \
          -x splice \
          blanks.mmi \
-         sample_HRrm_GLlblMetag.fastq.gz  > sample.sam 2> sample-mapping-info.txt
+         sample_GLlblMetag_HRrm.fastq.gz  > sample.sam 2> sample-mapping-info.txt
 ```
 
 **Parameter Definitions:**
@@ -694,13 +694,13 @@ minimap2 -t NumberOfThreads \
 - `-d` - Specifies the output file for the index (specific to the build contaminant index command).
 - `/path/to/contaminant_assembly/blank-assembly.fasta` - Specifies the input file in fasta format, provided as a positional argument (specific to the build contaminant index command).
 - `blanks.mmi` - Specifies the index file in mmi format, provided as a positional argument (specific to the map reads command).
-- `/path/to/trimmed_reads/sample_HRrm_GLlblMetag.fastq.gz` - Specifies the input file in fastq format, provided as a positional argument (specific to the map reads command).
+- `/path/to/trimmed_reads/sample_GLlblMetag_HRrm.fastq.gz` - Specifies the input file in fastq format, provided as a positional argument (specific to the map reads command).
 - `> sample.sam` - Redirects the output of the map reads command to a separate SAM file (specific to the map reads command).
 
 **Input Data**
 
 - /path/to/contaminant_assembly/blank-assembly.fasta (contaminant assembly, output from [Step 7a](#7-assemble-contaminants))
-- sample_HRrm_GLlblMetag.fastq.gz (filtered, trimmed, and HRrm reads, output from [Step 6b](#6b-remove-human-reads))
+- sample_GLlblMetag_HRrm.fastq.gz (filtered, trimmed, and HRrm reads, output from [Step 6b](#6b-remove-human-reads))
 
 **Output Data**
 
@@ -778,7 +778,7 @@ samtools idxstats sample_sorted.bam  > sample_idxstats.txt 2> sample_idxstats.lo
 #### 7e. Generate Decontaminated Read Files
 ```bash
 # Retain reads that do not map to contaminants
-samtools fastq -t -f 4 -o sample_decontam_GLlblMetag.fastq.gz -0 sample_decontam_GLlblMetag.fastq.gz sample_sorted.bam 
+samtools fastq -t -f 4 -o sample_GLlblMetag_decontam.fastq.gz -0 sample_GLlblMetag_decontam.fastq.gz sample_sorted.bam 
 ```
 
 **Parameter Definitions:**
@@ -786,8 +786,8 @@ samtools fastq -t -f 4 -o sample_decontam_GLlblMetag.fastq.gz -0 sample_decontam
 - `fastq` - Positional argument specifying the program for generating fastq files from a SAM/BAM file.
 - `-t` - Copy RG, BC, and QT tags to the FASTQ header line.
 - `-f 4` - Only retain unmapped reads that have been marked with the SAM "segment unmapped" FLAG (4).
-- `-o sample_decontam_GLlblMetag.fastq.gz` - Send reads flagged as either read1 or read2 to the named file (.gz ending ensures compressed output)
-- `-0 sample_decontam_GLlblMetag.fastq.gz` - Send reads flagged as both read1 and read2 or neither to the same named file
+- `-o sample_GLlblMetag_decontam.fastq.gz` - Send reads flagged as either read1 or read2 to the named file (.gz ending ensures compressed output)
+- `-0 sample_GLlblMetag_decontam.fastq.gz` - Send reads flagged as both read1 and read2 or neither to the same named file
 - `sample_sorted.bam` - Positional argument specifying the input BAM file.
 
 **Input Data:**
@@ -796,7 +796,7 @@ samtools fastq -t -f 4 -o sample_decontam_GLlblMetag.fastq.gz -0 sample_decontam
 
 **Output Data:**
 
-- **sample_decontam_GLlblMetag.fastq.gz** (filtered, trimmed, and HRrm sample reads with contaminants removed in fastq format)
+- **sample_GLlblMetag_decontam.fastq.gz** (filtered, trimmed, and HRrm sample reads with contaminants removed in fastq format)
 
 #### 7f. Contaminant Removal QC
 
@@ -806,7 +806,7 @@ NanoPlot --only-report \
          --outdir /path/to/decontam_nanoplot_output \
          --threads NumberOfThreads \
          --fastq \
-         sample_decontam_GLlblMetag.fastq.gz
+         sample_GLlblMetag_decontam.fastq.gz
 ```
 
 **Parameter Definitions:**
@@ -816,11 +816,11 @@ NanoPlot --only-report \
 - `--outdir` – Specifies the output directory to store results.
 - `--threads` - Number of parallel processing threads to use.
 - `--fastq` - Specifies that the input data is in fastq format.
-- `sample_decontam_GLlblMetag.fastq.gz` – The input reads, specified as a positional argument.
+- `sample_GLlblMetag_decontam.fastq.gz` – The input reads, specified as a positional argument.
 
 **Input Data:**
 
-- sample_decontam_GLlblMetag.fastq.gz (filtered, trimmed, and HRrm sample reads with all contaminants removed, output from [Step 7e](#7e-generate-decontaminated-read-files))
+- sample_GLlblMetag_decontam.fastq.gz (filtered, trimmed, and HRrm sample reads with all contaminants removed, output from [Step 7e](#7e-generate-decontaminated-read-files))
 
 **Output Data:**
 
@@ -915,11 +915,11 @@ kraken2 --db kraken2_host_db \
         --use-names \
         --output sample-kraken2-output.txt \
         --report sample-kraken2-report.tsv \
-        --unclassified-out sample_HostRm_GLlblMetag.fastq \
-        sample_decontam_GLlblMetag.fastq.gz
+        --unclassified-out sample_GLlblMetag_HostRm.fastq \
+        sample_GLlblMetag_decontam.fastq.gz
 
 # gzip fastq output file
-gzip sample_HostRm_GLlblMetag.fastq
+gzip sample_GLlblMetag_HostRm.fastq
 ```
 
 **Parameter Definitions:**
@@ -931,18 +931,18 @@ gzip sample_HostRm_GLlblMetag.fastq
 - `--output` - Specifies the name of the kraken2 read-based output file (one line per read).
 - `--report` - Specifies the name of the kraken2 report output file (one line per taxa, with number of reads assigned to it).
 - `--unclassified-out` - Specifies the name of the output file containing reads that were not classified, i.e non-human reads.
-- `sample_decontam_GLlblMetag.fastq.gz` - Positional argument specifying the input read file.
+- `sample_GLlblMetag_decontam.fastq.gz` - Positional argument specifying the input read file.
 
 **Input Data:**
 
 - kraken2_host_db/ (kraken2 host database directory, output from [Step 8a](#8a-build-kraken2-database))
-- sample_decontam_GLlblMetag.fastq.gz (filtered, trimmed, HRrm and contaminant-removed sample reads, output from [Step 7e](#7e-generate-decontaminated-read-files))
+- sample_GLlblMetag_decontam.fastq.gz (filtered, trimmed, HRrm and contaminant-removed sample reads, output from [Step 7e](#7e-generate-decontaminated-read-files))
 
 **Output Data:**
 
 - sample-kraken2-output.txt (kraken2 read-based output file (one line per read))
 - sample-kraken2-report.tsv (kraken2 report output file (one line per taxa, with number of reads assigned to it))
-- **sample_HostRm_GLlblMetag.fastq.gz** (filtered, trimmed, HRrm and contaminant-removed sample reads with all host reads removed, gzipped fastq file)
+- **sample_GLlblMetag_HostRm.fastq.gz** (filtered, trimmed, HRrm and contaminant-removed sample reads with all host reads removed, gzipped fastq file)
 
 
 #### 8c. Compile Host Read Removal QC
@@ -1861,7 +1861,7 @@ kaiju -f kaiju-db/nr_euk/kaiju_db_nr_euk.fmi \
       -t kaiju-db/nodes.dmp \
       -z NumberOfThreads \
       -E 1e-05 \
-      -i /path/to/sample_decontam_GLlblMetag.fastq.gz \
+      -i /path/to/sample_GLlblMetag_decontam.fastq.gz \
       -o sample_kaiju.out
 ```
 
@@ -1878,7 +1878,7 @@ kaiju -f kaiju-db/nr_euk/kaiju_db_nr_euk.fmi \
 
 - kaiju-db/nr_euk/kaiju_db_nr_euk.fmi (FM-index file containing the main Kaiju database index, output from [Step 10a](#10a-build-kaiju-database))
 - kaiju-db/nodes.dmp (kaiju taxonomy hierarchy nodes file, output from [Step 10a](#10a-build-kaiju-database))
-- sample_decontam_GLlblMetag.fastq.gz or sample_HostRm_GLlblMetag.fastq.gz (filtered and trimmed sample reads with both 
+- sample_GLlblMetag_decontam.fastq.gz or sample_GLlblMetag_HostRm.fastq.gz (filtered and trimmed sample reads with both 
     contaminants and human reads (and optionally host reads) removed, gzipped fastq file, 
     output from [Step 7e](#7e-generate-decontaminated-read-files) or [Step 8b](#8b-remove-host-reads))
 
@@ -2274,7 +2274,7 @@ kraken2 --db kraken2-db/ \
         --use-names \
         --output sample-kraken2-output.txt \
         --report sample-kraken2-report.tsv \
-        /path/to/sample_decontam_GLlblMetag.fastq.gz
+        /path/to/sample_GLlblMetag_decontam.fastq.gz
 ```
 
 **Parameter Definitions:**
@@ -2285,12 +2285,12 @@ kraken2 --db kraken2-db/ \
 - `--use-names` - Specifies to add taxa names in addition to taxids.
 - `--output` - Specifies the name of the kraken2 read-based output file.
 - `--report` - Specifies the name of the kraken2 report output file.
-- `sample_decontam_GLlblMetag.fastq.gz` - Positional argument specifying the input file.
+- `sample_GLlblMetag_decontam.fastq.gz` - Positional argument specifying the input file.
 
 **Input Data:**
 
 - kraken2-db/ (a directory containing kraken2 database files, output from [Step 11a](#11a-download-kraken2-database))
-- sample_decontam_GLlblMetag.fastq.gz or sample_HostRm_GLlblMetag.fastq.gz (filtered and trimmed sample reads with both 
+- sample_GLlblMetag_decontam.fastq.gz or sample_GLlblMetag_HostRm.fastq.gz (filtered and trimmed sample reads with both 
     contaminants and human reads (and, optionally, host reads) removed, gzipped fasta file, 
     output from [Step 7e](#7e-generate-decontaminated-read-files) or [Step 8b](#8b-remove-host-reads))
 
@@ -2613,7 +2613,7 @@ flye --meta \
      --threads NumberOfThreads \
      --out-dir sample/ \
      --nano-hq \
-     /path/to/sample_decontam_GLlblMetag.fastq.gz
+     /path/to/sample_GLlblMetag_decontam.fastq.gz
 
 # rename output files            
 mv sample/assembly.fasta sample_assembly.fasta
@@ -2626,11 +2626,11 @@ mv sample/flye.log sample_assembly.log
 - `--threads` - Number of parallel processing threads to use.
 - `--out-dir` - Specifies the name of the output directory.
 - `--nano-hq` - Specifies that input is from Oxford Nanopore high-quality reads (Guppy5+ SUP or Q20, <5% error). This skips a genome polishing step since the assembly will be polished with medaka in the next step.
-- `/path/to/sample_decontam_GLlblMetag.fastq.gz` - Path to the input file, specified as a positional argument.
+- `/path/to/sample_GLlblMetag_decontam.fastq.gz` - Path to the input file, specified as a positional argument.
 
 **Input Data**
 
-- sample_decontam_GLlblMetag.fastq.gz or sample_HostRm_GLlblMetag.fastq.gz (filtered and trimmed sample reads with both 
+- sample_GLlblMetag_decontam.fastq.gz or sample_GLlblMetag_HostRm.fastq.gz (filtered and trimmed sample reads with both 
     contaminants and human reads (and optionally host reads) removed, gzipped fasta file, 
     output from [Step 7e](#7e-generate-decontaminated-read-files) or [Step 8b](#8b-remove-host-reads))
 
@@ -2647,7 +2647,7 @@ mv sample/flye.log sample_assembly.log
 
 ```bash
 medaka_consensus -t NumberOfThreads \
-                 -i /path/to/sample_decontam_GLlblMetag.fastq.gz \
+                 -i /path/to/sample_GLlblMetag_decontam.fastq.gz \
                  -d /path/to/assemblies/sample_assembly.fasta \
                  -o sample/
   
@@ -2663,7 +2663,7 @@ mv sample/consensus.fasta sample_polished.fasta
 
 **Input Data:**
 
-- sample_decontam_GLlblMetag.fastq.gz or sample_HostRm_GLlblMetag.fastq.gz (filtered and trimmed sample reads with both 
+- sample_GLlblMetag_decontam.fastq.gz or sample_GLlblMetag_HostRm.fastq.gz (filtered and trimmed sample reads with both 
     contaminants and human reads (and optionally host reads) removed, gzipped fasta file, 
     output from [Step 7e](#7e-generate-decontaminated-read-files) or [Step 8b](#8b-remove-host-reads))
 - /path/to/assemblies/sample_assembly.fasta (sample assembly, output from [Step 12](#12-sample-assembly))
@@ -3033,7 +3033,7 @@ minimap2 -a \
          -x map-ont \
          -t NumberOfThreads \
          sample_assembly.fasta \
-         sample_decontam_GLlblMetag.fastq.gz \
+         sample_GLlblMetag_decontam.fastq.gz \
          > sample.sam  2> sample-mapping-info.txt
 ```
 
@@ -3043,14 +3043,14 @@ minimap2 -a \
 - `-x map-ont` - Specifies preset for mapping Nanopore reads to a reference.
 - `-t` - Number of parallel processing threads to use
 - `sample_assembly.fasta` – Assembly fasta file, provided as a positional argument.
-- `sample_decontam_GLlblMetag.fastq.gz` - Input sequence data file, provided as a positional argument.
+- `sample_GLlblMetag_decontam.fastq.gz` - Input sequence data file, provided as a positional argument.
 - `> sample.sam` - Redirects the output to a separate file.
 - `2> sample-mapping-info.txt` - Redirects the standar error to a separate file.
 
 **Input Data**
 
 - sample-assembly.fasta (contig-renamed assembly file, output from [Step 14a](#14a-rename-contig-headers))
-- sample_decontam_GLlblMetag.fastq.gz or sample_HostRm_GLlblMetag.fastq.gz (filtered and trimmed sample reads with both 
+- sample_GLlblMetag_decontam.fastq.gz or sample_GLlblMetag_HostRm.fastq.gz (filtered and trimmed sample reads with both 
     contaminants and human reads (and optionally host reads) removed, gzipped fasta file, 
     output from [Step 7e](#7e-generate-decontaminated-read-files) or [Step 8b](#8b-remove-host-reads))
 
@@ -3065,10 +3065,10 @@ minimap2 -a \
 ```bash
 # Sort Sam, convert to bam and create index
 samtools sort --threads NumberOfThreads \
-              -o sample_sorted_GLlblMetag.bam \
+              -o sample_GLlblMetag_sorted.bam \
               sample.sam > sample_sort.log 2>&1
 
-samtools index sample_sorted_GLlblMetag.bam sample_sorted_GLlblMetag.bam.bai
+samtools index sample_GLlblMetag_sorted.bam sample_GLlblMetag_sorted.bam.bai
 ```
 
 **Parameter Definitions:**
@@ -3089,8 +3089,8 @@ samtools index sample_sorted_GLlblMetag.bam sample_sorted_GLlblMetag.bam.bai
 
 **Output Data:**
 
-- **sample_sorted_GLlblMetag.bam** (sorted mapping to sample assembly, in BAM format)
-- **sample_sorted_GLlblMetag.bam.bai** (index of sorted mapping to sample assembly)
+- **sample_GLlblMetag_sorted.bam** (sorted mapping to sample assembly, in BAM format)
+- **sample_GLlblMetag_sorted.bam.bai** (index of sorted mapping to sample assembly)
 
 <br>
 
@@ -3265,7 +3265,7 @@ mv "Combined-gene-level-taxonomy-coverages.tsv Combined-gene-level-taxonomy-cove
 
 **Parameter Definitions:**  
 
-- `*-gene-coverage-annotation-and-tax_GLlbsMetag.tsv` - Positional arguments specifying the input tsv files, can be provided as a space-delimited list of files, or with wildcards like above.
+- `*-gene-coverage-annotation-and-tax_GLlblMetag.tsv` - Positional arguments specifying the input tsv files, can be provided as a space-delimited list of files, or with wildcards like above.
 - `-o` – Specifies the output file prefix.
 
 

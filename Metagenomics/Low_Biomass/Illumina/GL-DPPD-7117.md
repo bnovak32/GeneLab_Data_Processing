@@ -285,11 +285,11 @@ kraken2 --db kraken2_human_db \
         sample1_R1_raw.fastq.gz sample1_R2_raw.fastq.gz
 
 # rename and gzip output files
-mv sample1_R_1.fastq sample1_R1_HRrm_GLlbsMetag.fastq && \
-gzip sample1_R1_HRrm_GLlbsMetag.fastq
+mv sample1_R_1.fastq sample1_GLlbsMetag_R1_HRrm.fastq && \
+gzip sample1_GLlbsMetag_R1_HRrm.fastq
 
-mv  sample1_R_2.fastq sample1_R2_HRrm_GLlbsMetag.fastq && \
-gzip sample1_R2_HRrm_GLlbsMetag.fastq
+mv  sample1_R_2.fastq sample1_GLlbsMetag_R2_HRrm.fastq && \
+gzip sample1_GLlbsMetag_R2_HRrm.fastq
 ```
 
 **Parameter Definitions:**
@@ -312,7 +312,7 @@ gzip sample1_R2_HRrm_GLlbsMetag.fastq
 
 - sample1-kraken2-output.txt (kraken2 read-based output file (one line per read))
 - sample1-kraken2-report.tsv (kraken2 report output file (one line per taxa, with number of reads assigned to it))
-- **sample1_raw_HRrm_GLlbsMetag.fastq.gz** (raw sample reads with human reads removed, gzipped fasta file)
+- **sample1_GLlbsMetag_[R1|R2]_HRrm.fastq.gz** (raw sample reads with human reads removed, gzipped fasta file)
 
 
 #### 2c. Compile Human Read Removal QC
@@ -377,7 +377,7 @@ fastp --in1 sample1_R1_raw.fastq.gz --out1 temp_sample1_R1_filtered.fastq.gz \
 
 **Input Data:**
 
-- *raw_HRrm_GLlbsMetag.fastq.gz (raw sample reads with human reads removed, from [Step 2b](#2b-remove-human-reads))
+- *_GLlbsMetag_HRrm.fastq.gz (raw sample reads with human reads removed, from [Step 2b](#2b-remove-human-reads))
 
 **Output Data:**
 
@@ -386,8 +386,8 @@ fastp --in1 sample1_R1_raw.fastq.gz --out1 temp_sample1_R1_filtered.fastq.gz \
 #### 3b. Trim polyG
 
 ```bash
-fastp --in1 temp_sample1_R1_filtered.fastq.gz --out1 sample1_R1_filtered_GLlbsMetag.fastq.gz \
-      --in2 temp_sample1_R2_filtered.fastq.gz --out2 sample1_R2_filtered_GLlbsMetag.fastq.gz \
+fastp --in1 temp_sample1_R1_filtered.fastq.gz --out1 sample1_GLlbsMetag_R1_filtered.fastq.gz \
+      --in2 temp_sample1_R2_filtered.fastq.gz --out2 sample1_GLlbsMetag_R2_filtered.fastq.gz \
       --qualified_quality_phred  20 \
       --length_required 50 \
       --thread 2 \
@@ -418,7 +418,7 @@ fastp --in1 temp_sample1_R1_filtered.fastq.gz --out1 sample1_R1_filtered_GLlbsMe
 
 **Output Data:**
 
-- **\*filtered_GLlbsMetag.fastq.gz** (quality filtered and adapter trimmed, human removed reads)
+- **\*_(filtered.fastq.gz** (quality filtered and adapter trimmed, human removed reads)
 
 #### 3c. Filtered Data QC
 
@@ -429,11 +429,11 @@ fastqc -o filtered_fastqc_output *filtered.fastq.gz
 **Parameter Definitions:**
 
 - `-o` – the output directory to store results
-- `*filtered_GLlbsMetag.fastq.gz` – the input reads are specified as a positional argument, and can be given all at once with wildcards like this, or as individual arguments with spaces in between them
+- `*_GLlbsMetag_R[12]_filtered.fastq.gz` – the input reads are specified as a positional argument, and can be given all at once with wildcards like this, or as individual arguments with spaces in between them
 
 **Input data:**
 
-- *filtered_GLlbsMetag.fastq.gz (trimmed and filtered reads, from [Step 3b](#3b-trim-polyg))
+- *filtered.fastq.gz (trimmed and filtered reads, from [Step 3b](#3b-trim-polyg))
 
 **Output data:**
 
@@ -479,8 +479,8 @@ multiqc --zip-data-dir \
 #### 4a. Assemble Contaminants
 
 ```bash
-cat /path/to/contaminant_fastq/*_R1_filtered_GLlbsMetag.fastq.gz > merged_R1.fastq.gz
-cat /path/to/contaminant_fastq/*_R2_filtered_GLlbsMetag.fastq.gz > merged_R2.fastq.gz
+cat /path/to/contaminant_fastq/*_GLlbsMetag_R1_filtered.fastq.gz > merged_R1.fastq.gz
+cat /path/to/contaminant_fastq/*_GLlbsMetag_R2_filtered.fastq.gz > merged_R2.fastq.gz
 
 spades.py --meta \
      --threads 8 \
@@ -503,7 +503,7 @@ mv spades.log blank-assembly.log
 
 **Input Data**
 
-- *_R[12]_filtered_GLlbsMetag.fastq.gz (one or more paired-end, trimmed and filtered, HRrm reads from blank (negative control) samples, output from [Step 3b](#3b-trim-polyg))
+- *_GLlbsMetag_R[12]_filtered.fastq.gz (one or more paired-end, trimmed and filtered, HRrm reads from blank (negative control) samples, output from [Step 3b](#3b-trim-polyg))
 
 **Output Data**
 
@@ -522,14 +522,14 @@ bowtie2-build /path/to/contaminant_assembly/blank-scaffolds.fasta /path/to/blank
 bowtie2 -p NumberOfThreads \
        -x /path/to/blank-index/blanks \
        --very-sensitive-local \
-       -1 sample1_R1_filtered_GLlbsMetag.fastq.gz \
-       -2 sample2_R2_filtered_GLlbsMetag.fastq.gz \
+       -1 sample1_GLlbsMetag_R1_filtered.fastq.gz \
+       -2 sample2_GLlbsMetag_R2_filtered.fastq.gz \
        --un-conc-gz sample1_decontam.fastq.gz
        > sample1.sam 2> sample1-mapping-info.txt
 
 # rename blank removed fastq files
-mv sample1_decontam.fastq.1.gz sample1_R1_decontam_GLlbsMetag.fastq.gz
-mv sample1_decontam.fastq.2.gz sample1_R2_decontam_GLlbsMetag.fastq.gz
+mv sample1_decontam.fastq.1.gz sample1_GLlbsMetag_R1_decontam.fastq.gz
+mv sample1_decontam.fastq.2.gz sample1_GLlbsMetag_R2_decontam.fastq.gz
 
 # remove intermediate file
 rm -rf sample1.sam
@@ -554,11 +554,11 @@ rm -rf sample1.sam
 **Input Data**
 
 - /path/to/contaminant_assembly/blank-scaffolds.fasta (contaminant assembly, output from [Step 4a](#4a-assemble-contaminants))
-- sample1_R[12]_filtered_GLlbsMetag.fastq.gz (filtered and trimmed reads, output from [Step 3b](#3b-trim-polyg))
+- sample1_GLlbsMetag_R[12]_filtered.fastq.gz (filtered and trimmed reads, output from [Step 3b](#3b-trim-polyg))
 
 **Output Data**
 
-- sample1_R[12]_decontam_GLlbsMetag.fastq.gz (decontaminated reads)
+- sample1_GLlbsMetag_R[12]_decontam.fastq.gz (decontaminated reads)
 - sample-mapping-info.txt (bowtie2 mapping log file)
 
 <br>
@@ -566,17 +566,17 @@ rm -rf sample1.sam
 #### 4c. Contaminant Removal QC
 
 ```bash
-fastqc -o decontam_fastqc_output *decontam_GLlbsMetag.fastq.gz
+fastqc -o decontam_fastqc_output *decontam.fastq.gz
 ```
 
 **Parameter Definitions:**
 
 - `-o` – the output directory to store results
-- `*decontam_GLlbsMetag.fastq.gz` – the input reads are specified as a positional argument, and can be given all at once with wildcards like this, or as individual arguments with spaces in between them
+- `*decontam.fastq.gz` – the input reads are specified as a positional argument, and can be given all at once with wildcards like this, or as individual arguments with spaces in between them
 
 **Input data:**
 
-- *decontam_GLlbsMetag.fastq.gz (decontaminated reads)
+- *decontam.fastq.gz (decontaminated reads)
 
 **Output data:**
 
@@ -673,15 +673,15 @@ kraken2 --db kraken2_${hostname}_db \
         --use-names \
         --output sample-kraken2-output.txt \
         --report sample-kraken2-report.tsv \
-        --unclassified-out sample1_R#.fastq \
-        sample1_R1_decontam.fastq.gz sample1_R2_decontam.fastq.gz
+        --unclassified-out sample1_GLlbsMetag_R#.fastq \
+        sample1_GLlbsMetag_R1_decontam.fastq.gz sample1_GLlbsMetag_R2_decontam.fastq.gz
 
 # rename and gzip output files
-mv sample1_R_1.fastq sample1_R1_HostRm_GLlbsMetag.fastq && \
-gzip sample1_R1_HostRm_GLlbsMetag.fastq
+mv sample1_R_1.fastq sample1_GLlbsMetag_R1_HostRm.fastq && \
+gzip sample1_GLlbsMetag_R1_HostRm.fastq
 
-mv  sample1_R_2.fastq sample1_R2_HostRm_GLlbsMetag.fastq && \
-gzip sample1_R2_HostRm_GLlbsMetag.fastq
+mv  sample1_R_2.fastq sample1_GLlbsMetag_R2_HostRm.fastq && \
+gzip sample1_GLlbsMetag_R2_HostRm.fastq
 ```
 
 **Parameter Definitions:**
@@ -693,18 +693,18 @@ gzip sample1_R2_HostRm_GLlbsMetag.fastq
 - `--output` - Specifies the name of the kraken2 read-based output file (one line per read).
 - `--report` - Specifies the name of the kraken2 report output file (one line per taxa, with number of reads assigned to it).
 - `--unclassified-out` - Specifies the name of the output file containing reads that were not classified, i.e non-host reads.
-- `sample1_R1_decontam_GLlbsMetag.fastq.gz sample1_R2_decontam_GLlbsMetag.fastq.gz` - Positional argument specifying the input read files.
+- `sample1_GLlbsMetag_R1_decontam.fastq.gz sample1_GLlbsMetag_R2_decontam.fastq.gz` - Positional argument specifying the input read files.
 
 **Input Data:**
 
 - kraken2_host_db/ (kraken2 host database directory, output from [Step 5a](#5a-build-kraken2-host-database))
-- sample_*decontam_GLlbsMetag.fastq.gz (filtered and trimmed sample reads with contaminants removed, output from [Step 4b](#4b-build-contaminant-index-and-map-reads))
+- sample_GLlbsMetag_R[12]_decontam.fastq.gz (filtered and trimmed sample reads with contaminants removed, output from [Step 4b](#4b-build-contaminant-index-and-map-reads))
 
 **Output Data:**
 
 - sample-kraken2-output.txt (kraken2 read-based output file (one line per read))
 - sample-kraken2-report.tsv (kraken2 report output file (one line per taxa, with number of reads assigned to it))
-- **sample_HostRm_GLlbsMetag.fastq.gz** (filtered and trimmed sample reads with contaminants, human, and host reads removed, gzipped fasta file)
+- **sample_GLlbsMetag_HostRm.fastq.gz** (filtered and trimmed sample reads with contaminants, human, and host reads removed, gzipped fasta file)
 
 
 #### 5c. Compile Host Read Removal QC
@@ -1620,8 +1620,8 @@ kaiju -f kaiju-db/nr_euk/kaiju_db_nr_euk.fmi \
       -t kaiju-db/nodes.dmp \
       -z NumberOfThreads \
       -E 1e-05 \
-      -i /path/to/sample1_R1_decontam_GLlbsMetag.fastq.gz \
-      -j /path/to/sample1_R2_decontam_GLlbsMetag.fastq.gz \
+      -i /path/to/sample1_GLlbsMetag_R1_decontam.fastq.gz \
+      -j /path/to/sample1_GLlbsMetag_R2_decontam.fastq.gz \
       -o sample_kaiju.out
 ```
 
@@ -2034,7 +2034,7 @@ kraken2 --db kraken2-db/ \
         --use-names \
         --output sample-kraken2-output.txt \
         --report sample-kraken2-report.tsv \
-        /path/to/sample1_R1_decontam_GLlbsMetag.fastq.gz /path/to/sample1_R2_decontam_GLlbsMetag.fastq.gz
+        /path/to/sample1_GLlbsMetag_R1_decontam.fastq.gz /path/to/sample1_GLlbsMetag_R2_decontam.fastq.gz
 ```
 
 **Parameter Definitions:**
@@ -2045,8 +2045,8 @@ kraken2 --db kraken2-db/ \
 - `--use-names` - Specifies to add taxa names in addition to taxids.
 - `--output` - Specifies the name of the kraken2 read-based output file.
 - `--report` - Specifies the name of the kraken2 report output file.
-- `sample1_R1_decontam_GLlbsMetag.fastq.gz` - Positional argument specifying the forward read input file.
-- `sample1_R2_decontam_GLlbsMetag.fastq.gz` - Positional argument specifying the reverse read input file.
+- `sample1_GLlbsMetag_R1_decontam.fastq.gz` - Positional argument specifying the forward read input file.
+- `sample1_GLlbsMetag_R2_decontam.fastq.gz` - Positional argument specifying the reverse read input file.
 
 
 **Input Data:**
@@ -2401,7 +2401,7 @@ metaphlan --install
 
 ```bash
   # forward and reverse reads need to be provided combined if paired-end (if not paired-end, single-end reads are provided to the --input argument next)
-cat sample1_R1_decontam_GLlbsMetag.fastq.gz sample1_R2_decontam_GLlbsMetag.fastq.gz > sample1-combined.fastq.gz
+cat sample1_GLlbsMetag_R1_decontam.fastq.gz sample1_GLlbsMetag_R2_decontam.fastq.gz > sample1-combined.fastq.gz
 
 humann --input sample1-combined.fastq.gz \
        --output sample1-humann3-out-dir \
@@ -2431,7 +2431,7 @@ mv sample1-humann3-out-dir/sample1_humann_temp/sample1_metaphlan_bugs_list.tsv \
 **Input Data:**
 
 - `/path/to/humann3-db/` (HUMAnN databases installed in [Step 9a](#9a-download-and-install-humann-databases))
-- *_R[12]_decontam_GLlbsMetag.fastq.gz or *_R[12]_HostRm_GLlbsMetag.fastq.gz (filtered and trimmed sample reads with both 
+- *_GLlbsMetag_R[12]_decontam.fastq.gz or *_GLlbsMetag_R[12]_HostRm.fastq.gz (filtered and trimmed sample reads with both 
     contaminants and human reads (and, optionally, host reads) removed, gzipped fasta file, 
     output from [Step 4b](#4b-build-contaminant-index-and-map-reads) or [Step 5b](#5b-remove-host-reads))
 
@@ -2858,7 +2858,7 @@ htmlwidgets::saveWidget(ggplotly(p), glue("Metaphlan_decontam_species_barplot_GL
 ### 10. Sample Assembly
 
 ```
-megahit -1 sample1_R1_decontam_GLlbsMetag.fastq.gz -2 sample1_R2_decontam_GLlbsMetag.fastq.gz \
+megahit -1 sample1_GLlbsMetag_R1_decontam.fastq.gz -2 sample1_GLlbsMetag_R2_decontam.fastq.gz \
         -o sample1-assembly -t NumberOfThreads --min-contig-length 500 > sample1-assembly.log 2>&1
 ```
 
@@ -2873,7 +2873,7 @@ megahit -1 sample1_R1_decontam_GLlbsMetag.fastq.gz -2 sample1_R2_decontam_GLlbsM
 
 **Input data:**
 
-- *_R[12]_decontam_GLlbsMetag.fastq.gz or *_R[12]_HostRm_GLlbsMetag.fastq.gz (filtered and trimmed sample reads with both 
+- *_GLlbsMetag_R[12]_decontam.fastq.gz or *_GLlbsMetag_R[12]_HostRm.fastq.gz (filtered and trimmed sample reads with both 
     contaminants and human reads (and, optionally, host reads) removed, gzipped fasta file, 
     output from [Step 4b](#4b-build-contaminant-index-and-map-reads) or [Step 5b](#5b-remove-host-reads))
 
@@ -3260,8 +3260,8 @@ bowtie2-build sample1_assembly_GLlbsMetag.fasta sample1-index
 ```bash
 bowtie2 --mm --quiet --threads ${task.cpus} \
         -x sample1-index \
-        -1 sample1_R1_decontam_GLlbsMetag.fastq.gz \
-        -2 sample1_R2_decontam_GLlbsMetag.fastq.gz \
+        -1 sample1_GLlbsMetag_R1_decontam.fastq.gz \
+        -2 sample1_GLlbsMetag_R2_decontam.fastq.gz \
         --no-unal > sample1.sam  2> sample1-mapping-info_GLlbsMetag.txt 
 ```
 
@@ -3280,7 +3280,7 @@ bowtie2 --mm --quiet --threads ${task.cpus} \
 **Input Data**
 
 - sample1-index (bowti2 index files, output from [Step 15a](#15a-build-reference-index))
-- *_R[12]_decontam_GLlbsMetag.fastq.gz or *_R[12]_HostRm_GLlbsMetag.fastq.gz (filtered and trimmed sample reads with both 
+- *_GLlbsMetag_R[12]_decontam.fastq.gz or *_GLlbsMetag_R[12]_HostRm.fastq.gz (filtered and trimmed sample reads with both 
     contaminants and human reads (and, optionally, host reads) removed, gzipped fasta file, 
     output from [Step 4b](#4b-build-contaminant-index-and-map-reads) or [Step 5b](#5b-remove-host-reads))
 
