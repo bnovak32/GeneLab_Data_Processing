@@ -1,31 +1,29 @@
 // main.nf
 nextflow.enable.dsl=2
 
-// Terminal text color definitions
-c_back_bright_red = "\u001b[41;1m";
-c_reset           = "\033[0m";
+include { paramsHelp         } from 'plugin/nf-schema'
+include { validateParameters } from 'plugin/nf-schema'
 
-include { KRAKEN2_DB } from './modules/kraken2_db.nf'
-include { KRAKEN_2 } from './modules/kraken2.nf'
-include { SUMMARY } from './modules/summary.nf'
+include { KRAKEN2_DB         } from './modules/kraken2_db.nf'
+include { KRAKEN_2           } from './modules/kraken2.nf'
+include { SUMMARY            } from './modules/summary.nf'
+include { COMPILE_SUMMARY    } from './modules/summary.nf'
 
-include { SOFTWARE_VERSIONS } from './modules/utils.nf'
-include { GENERATE_PROTOCOL } from './modules/generate_protocol.nf'
+include { SOFTWARE_VERSIONS  } from './modules/utils.nf'
+include { GENERATE_PROTOCOL  } from './modules/generate_protocol.nf'
 
 workflow {
     
-    if (!params.ref_dbs_Dir){
-       error("""${c_back_bright_red}INPUT ERROR! 
-              Please supply the path to the directory storing kraken2 reference databases
-              by passing --ref_dbs_Dir.
-              ${c_reset}""")
-    }
+    main:
+
+    // check input parameters
+    validateParameters()
 
     // Capture software versions
-    software_versions_ch = Channel.empty()
+    software_versions_ch = channel.empty()
 
     // Get host info
-    host_info = Channel
+    host_info = channel
         .fromPath(params.hosts_table)
         .splitCsv(header:true)
         .filter { row -> row.name.toLowerCase() == params.host.toLowerCase() }  // match host
@@ -38,19 +36,18 @@ workflow {
     
     // Check if kraken2 database already exists or needs to be built
     def host_id = params.host.replaceAll(' ', '_').toLowerCase()
-    def host_db = file("${params.ref_dbs_Dir}/kraken2-${host_id}-db")
+    def host_db = file("${params.ref_dbs_dir}/kraken2-${host_id}-db")
     def db_exists = host_db.exists()
 
-    if (db_exists) {
-        database_ch = Channel.value(host_db)
-    }
+    if (db_exists)
+        database_ch = channel.value(host_db)
     else {
-        build_ch = host_info.map { name, hostID, species, refseq, genome, fasta -> tuple(name, hostID, fasta) }
-        KRAKEN2_DB(build_ch)
+        build_ch = host_info.map { name, hostID, species, refseq, genome, fasta -> tuple(name, host_id, fasta) }
+        KRAKEN2_DB(build_ch, params.ref_dbs_dir)
         database_ch = KRAKEN2_DB.out.first()
     }
     
-    Channel
+    channel
         .fromPath(params.sample_id_list)
         .splitText()
         .map { it.trim() }
@@ -66,31 +63,19 @@ workflow {
         }
         .set {generated_reads_ch}
 
-    KRAKEN_2(database_ch, generated_reads_ch)
+    KRAKEN_2(database_ch, generated_reads_ch, params.out_suffix)
     KRAKEN_2.out.version | mix(software_versions_ch) | set{software_versions_ch}
     
-    // Generate summary and compile one file
+    // Generate summary and compile into one file
     SUMMARY(KRAKEN_2.out.output, KRAKEN_2.out.report)
-    SUMMARY.out
-    .collect()
-    .subscribe { summary_files ->
-      def outfile = file("${params.outdir}/results/Host-read-removal-summary.tsv")
-      def header = "Sample_ID\tTotal_fragments_before\tTotal_fragments_after\tPercent_host_reads_removed\n"
-      outfile.text = header + summary_files.collect { it.text }.join()
-      
-      // summary.tmp cleanup
-      summary_files.each { f ->
-            def tmpFile = f.toFile()
-            tmpFile.delete()
-            } 
-    }
+    COMPILE_SUMMARY(SUMMARY.out.collect(), channel.fromPath(params.sample_id_list), params.host) 
 
     // Software Version Capturing - combining all captured software versions
     nf_version = "Nextflow Version ".concat("${nextflow.version}")
-    nextflow_version_ch = Channel.value(nf_version)
+    nextflow_version_ch = channel.value(nf_version)
 
     //  Write software versions to file
-    software_versions_ch | map { it.text.strip() }
+    software_versions_ch | map { it -> it.text.strip() }
                          | unique
                          | mix(nextflow_version_ch)
                          | collectFile({it -> it}, newLine: true, cache: false)
@@ -99,6 +84,41 @@ workflow {
     // Protocol always needs name, refseq ID, and genome build
     protocol_ch = host_info.map { name, hostID, species, refseq, genome, fasta -> tuple(name, refseq, genome) }
     
-    GENERATE_PROTOCOL(protocol_ch, SOFTWARE_VERSIONS.out)
+    def protocol = host_db.resolve('read-removal-protocol-text.txt')
+    protocol_out = GENERATE_PROTOCOL(protocol_ch, SOFTWARE_VERSIONS.out, channel.value(protocol))
+    
+    publish:
+    protocol_out = protocol_out
+    software_versions = SOFTWARE_VERSIONS.out
+    fastq_out = KRAKEN_2.out.host_removed
+    kraken2_out = KRAKEN_2.out.output
+    kraken2_report = KRAKEN_2.out.report
+    summary_stats = COMPILE_SUMMARY.out.summary_file
+    
+}
 
+output {
+    protocol_out {
+        path "processing_info"
+    }
+
+    software_versions {
+        path "processing_info"
+    }
+
+    fastq_out {
+        path "${params.reads_outdir}"
+    }
+
+    kraken2_out {
+        path "results/kraken2-output"
+    }
+
+    kraken2_report {
+        path "results/kraken2-output"
+    }
+
+    summary_stats {
+        path "results"
+    }
 }

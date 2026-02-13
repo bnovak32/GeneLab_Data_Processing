@@ -1,26 +1,70 @@
 process KRAKEN2_DB {
-    tag "Downloading host reads database to ${params.ref_dbs_Dir}"
-    publishDir "${params.ref_dbs_Dir}", mode: 'copy'
+    tag "Creating host reads database in ${ref_dbs_dir}"
+    publishDir "${ref_dbs_dir}", mode: 'copy'
         
     input:
-    tuple val(host), val(host_id), val(fasta_url)
+    tuple val(host_name), val(host_url) , path(host_fasta)
+    path ref_dbs_dir
 
     output:
-    path "kraken2-${host_id}-db/"
+    path("kraken2-${host_name}-db/"), emit: krakendb_dir
+    path("versions.txt"), emit: version
 
     script:
-    """
-    k2 download-taxonomy --db kraken2-${host_id}-db/
+    if (host_url != null)
+        """
+        echo "Downloading and unpacking database from ${host_url}
+        wget -O ${host_name}.tar.gz --timeout=3600 --tries=0 --continue ${host_url}
 
-    # Download FASTA file and uncompress it
-    wget -q ${fasta_url} -O host_assembly.fasta.gz
-    gunzip -c host_assembly.fasta.gz > host_assembly.fasta
+        mkdir kraken2-${host_name}-db/ && tar -zxvf -C kraken2-${host_name}-db/
 
-    kraken2-build --add-to-library host_assembly.fasta --db kraken2-${host_id}-db/ --threads ${task.cpus} --no-masking
+        # Cleaning up
+        [ -f  ${host_name}.tar.gz ] && rm -rf ${host_name}.tar.gz
 
-    kraken2-build --build --db kraken2-${host_id}-db/ --threads ${task.cpus}
+        echo "Kraken2 \$(kraken2 -version | head -n 1 | awk '{print \$3}')" >> versions.txt            
+        """
+    else if (host_fasta != null)
+        """
+        echo "Attempting to build a custom ${host_name} reference database from ${host_fasta}"
 
-    kraken2-build --clean --db kraken2-${host_id}-db/
+        # install taxonomy
+        k2 download-taxonomy --db kraken2-${host_name}-db/
+
+        # add sequence to database's genomic library
+        k2 add-to-library --db kraken2-${host_name}-db/ --threads ${task.cpus} \
+                          --files ${host_fasta} --no-masking
+
+        # build the kraken2 database
+        k2 build --db kraken2-${host_name}-db/ --threads ${task.cpus} \
+                 --kmer-len 35 --minimizer-len 31
+
+        # remove intermediate files
+        k2 clean --db kraken2-${host_name}-db/
+
+        echo "Kraken2 \$(kraken2 -version | head -n 1 | awk '{print \$3}')" >> versions.txt            
+        """
+    else if (host_name != null)
+        """
+        echo "Download and build kraken reference for named host: ${host_name}"
+
+        # download genomic sequences
+        k2 download-library --db kraken2-${host_name}-db/ --threads ${task.cpus} \
+                            --library ${host_name} --no-masking
+
+        # install taxonomy
+        k2 download-taxonomy --db kraken2-${host_name}-db/
+
+        # build the kraken2 database
+        k2 build --db kraken2-${host_name}-db/ --threads ${task.cpus} \
+                 --kmer-len 35 --minimizer-len 31
+
+        # remove intermediate files
+        k2 clean --db kraken2-${host_name}-db/ 
             
-    """
+        echo "Kraken2 \$(kraken2 -version | head -n 1 | awk '{print \$3}')" >> versions.txt            
+        """
+    else
+        error "Input error, host_name, host_url, and host_fasta are all set to null. Please supply at least one valid parameter for database creation"
+
+
 }
