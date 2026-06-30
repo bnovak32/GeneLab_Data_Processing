@@ -16,19 +16,7 @@ if (params.help) {
   println("┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅")
   println("┇ Microarray Agilent 1 Channel Post Processing Pipeline: $workflow.manifest.version  ┇")
   println("┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅")
-  println("Usage example 1: Processing GLDS datasets using genome fasta and gtf from Ensembl")
-  println("   > nextflow run ./main.nf --gldsAccession GLDS-367")
-  println()
-  println("Usage example 3: Processing Other datasets")
-  println("   Note: This requires a user-created runsheet.")
-  println("   > nextflow run ./main.nf --runsheetPath </path/to/runsheet>")
-  println()
-  println("arguments:")
-  println("  --help                show this help message and exit")
-  println("  --gldsAccession GLDS-000")
-  println("                        the GLDS accession id to process through the Microarray Agilent 1 Channel Post Processing Pipeline.")
-  println("  --outputDir           Directory to save staged raw files and processed files. Default: <launch directory>")
-  // println("  -stub-run             runs the workflow forcing 'unstranded' RSEM settings and using dummy gene counts in the differential gene expression (DGE) analysis. Useful when combined with the --truncateTo parameter this often leads to low gene counts and errors in the DGE analysis")  
+  println("Post processing workflow. Generates md5sum of output files and updates ISA archive tables. Help menu refinements to come")
   exit 0
   }
 
@@ -38,9 +26,7 @@ println "\n"
 /**************************************************
 * CHECK REQUIRED PARAMS AND LOAD  *****************
 **************************************************/
-// Get all params sourced data into channels
-// Set up channel containing glds accession number
-if ( !params.outputDir ) {  params.outputDir = "$workflow.launchDir" }
+println("Resolved output directory: ${ params.resultsDir }")
 
 /**************************************************
 * WORKFLOW SPECIFIC PRINTOUTS  ********************
@@ -48,21 +34,33 @@ if ( !params.outputDir ) {  params.outputDir = "$workflow.launchDir" }
 
 workflow {
   main:
-    ch_processed_directory = Channel.fromPath("${ params.outputDir }/${ params.gldsAccession }", checkIfExists: true)
-    ch_runsheet = Channel.fromPath("${ params.outputDir }/${ params.gldsAccession }/Metadata/*_runsheet.csv", checkIfExists: true)
-    ch_software_versions = Channel.fromPath("${ params.outputDir }/${ params.gldsAccession }/GeneLab/software_versions_GLmicroarray.md", checkIfExists: true)
+    ch_processed_directory = Channel.fromPath("${ params.resultsDir }", checkIfExists: true)
+    ch_runsheet = Channel.fromPath("${ params.resultsDir }/Metadata/*_runsheet.csv", checkIfExists: true)
+    ch_software_versions = Channel.fromPath("${ params.resultsDir }/GeneLab/software_versions_GLmicroarray.md", checkIfExists: true)
+    ch_processing_meta = Channel.fromPath("${ params.resultsDir }/GeneLab/meta.sh", checkIfExists: true)
+    
     GENERATE_MD5SUMS(      
       ch_processed_directory, 
       ch_runsheet,       
-      "${ projectDir }/bin/dp_tools__agilent_1_channel" // dp_tools plugin
+      "${ projectDir }/bin/${ params.skipDE ? 'dp_tools__agilent_1_channel_skipDE' : 'dp_tools__agilent_1_channel' }" // dp_tools plugin
     )
-    UPDATE_ISA_TABLES(
-      ch_processed_directory, 
-      ch_runsheet,       
-      "${ projectDir }/bin/dp_tools__agilent_1_channel" // dp_tools plugin
-    )
+
+    def isa_file = file("${ params.resultsDir }/Metadata/*ISA*.zip")
+    if ( isa_file ) {
+      ch_isa = Channel.fromPath("${ params.resultsDir }/Metadata/*ISA*.zip")
+      UPDATE_ISA_TABLES(
+        ch_processed_directory, 
+        ch_runsheet,
+        ch_isa,
+        "${ projectDir }/bin/${ params.skipDE ? 'dp_tools__agilent_1_channel_skipDE' : 'dp_tools__agilent_1_channel' }"
+      )
+    } else {
+      println "${ c_back_bright_red }WARNING: No ISA archive found in ${ params.resultsDir }/Metadata/ -- skipping UPDATE_ISA_TABLES${ c_reset }"
+    }
+    
     GENERATE_PROTOCOL(
       ch_software_versions,
-      ch_runsheet | splitCsv(header: true, quote: '"') | first | map{ row -> row['organism'] }
+      ch_processing_meta,
+      params.skipDE
     )
 }

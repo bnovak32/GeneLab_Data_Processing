@@ -4,7 +4,7 @@
 
 ### Implementation Tools <!-- omit in toc -->
 
-The current GeneLab Agilent 1 Channel Microarray consensus processing pipeline (NF_MAAgilent1ch), [GL-DPPD-7112](../../Pipeline_GL-DPPD-7112_Versions/GL-DPPD-7112.md), is implemented as a [Nextflow](https://nextflow.io/) DSL2 workflow and utilizes [Singularity](https://docs.sylabs.io/guides/3.10/user-guide/introduction.html) to run all tools in containers. This workflow (NF_MAAgilent1ch) is run using the command line interface (CLI) of any unix-based system.  While knowledge of creating workflows in Nextflow is not required to run the workflow as is, [the Nextflow documentation](https://nextflow.io/docs/latest/index.html) is a useful resource for users who want to modify and/or extend this workflow.   
+The current GeneLab Agilent 1 Channel Microarray consensus processing pipeline (NF_MAAgilent1ch), [GL-DPPD-7112-A](../../Pipeline_GL-DPPD-7112_Versions/GL-DPPD-7112-A.md), is implemented as a [Nextflow](https://nextflow.io/) DSL2 workflow and utilizes [Singularity](https://docs.sylabs.io/guides/3.10/user-guide/introduction.html) to run all tools in containers. This workflow (NF_MAAgilent1ch) is run using the command line interface (CLI) of any unix-based system.  While knowledge of creating workflows in Nextflow is not required to run the workflow as is, [the Nextflow documentation](https://nextflow.io/docs/latest/index.html) is a useful resource for users who want to modify and/or extend this workflow.   
 
 ### Workflow & Subworkflows <!-- omit in toc -->
 
@@ -14,7 +14,7 @@ The current GeneLab Agilent 1 Channel Microarray consensus processing pipeline (
 
 ---
 The NF_MAAgilent1ch workflow is composed of three subworkflows as shown in the image above.
-Below is a description of each subworkflow and the additional output files generated that are not already indicated in the [GL-DPPD-7112 pipeline document](../../Pipeline_GL-DPPD-7112_Versions/GL-DPPD-7112.md):
+Below is a description of each subworkflow and the additional output files generated that are not already indicated in the [GL-DPPD-7112-A pipeline document](../../Pipeline_GL-DPPD-7112_Versions/GL-DPPD-7112-A.md):
 
 1. **Analysis Staging Subworkflow**
 
@@ -25,7 +25,7 @@ Below is a description of each subworkflow and the additional output files gener
 2. **Agilent 1 Channel Microarray Processing Subworkflow**
 
    - Description:
-     - This subworkflow uses the staged raw data and metadata parameters from the Analysis Staging Subworkflow to generate processed data using the [GL-DPPD-7112 pipeline](../../Pipeline_GL-DPPD-7112_Versions/GL-DPPD-7112.md).
+     - This subworkflow uses the staged raw data and metadata parameters from the Analysis Staging Subworkflow to generate processed data using the [GL-DPPD-7112-A pipeline](../../Pipeline_GL-DPPD-7112_Versions/GL-DPPD-7112-A.md).
 
 1. **V&V Pipeline Subworkflow**
 
@@ -53,6 +53,7 @@ Below is a description of each subworkflow and the additional output files gener
 - [3. Run the Workflow](#3-run-the-workflow)
   - [3a. Approach 1: Run the workflow on a GeneLab Agilent 1 Channel Microarray dataset](#3a-approach-1-run-the-workflow-on-a-genelab-agilent-1-channel-microarray-dataset)
   - [3b. Approach 2: Run the workflow on a non-GLDS dataset using a user-created runsheet](#3b-approach-2-run-the-workflow-on-a-non-glds-dataset-using-a-user-created-runsheet)
+  - [3c. Approach 3: Run the workflow using an ISA Archive](#3c-approach-3-run-the-workflow-using-an-isa-archive)
 - [4. Additional Output Files](#4-additional-output-files)
 
 <br>
@@ -93,9 +94,9 @@ We recommend installing Singularity on a system wide level as per the associated
 All files required for utilizing the NF_MAAgilent1ch GeneLab workflow for processing Agilent 1 Channel Microarray data are in the [workflow_code](workflow_code) directory. To get a copy of latest NF_MAAgilent1ch version on to your system, the code can be downloaded as a zip file from the release page then unzipped after downloading by running the following commands: 
 
 ```bash
-wget https://github.com/nasa/GeneLab_Data_Processing/releases/download/NF_MAAgilent1ch_1.0.4/NF_MAAgilent1ch_1.0.4.zip
+wget https://github.com/nasa/GeneLab_Data_Processing/releases/download/NF_MAAgilent1ch_1.0.5/NF_MAAgilent1ch_1.0.5.zip
 
-unzip NF_MAAgilent1ch_1.0.4.zip
+unzip NF_MAAgilent1ch_1.0.5.zip
 ```
 
 <br>
@@ -104,7 +105,7 @@ unzip NF_MAAgilent1ch_1.0.4.zip
 
 ### 3. Run the Workflow
 
-While in the location containing the `NF_MAAgilent1ch_1.0.4` directory that was downloaded in [step 2](#2-download-the-workflow-files), you are now able to run the workflow. Below are three examples of how to run the NF_MAAgilent1ch workflow:
+While in the location containing the `NF_MAAgilent1ch_1.0.5` directory that was downloaded in [step 2](#2-download-the-workflow-files), you are now able to run the workflow. Below are three examples of how to run the NF_MAAgilent1ch workflow:
 > Note: Nextflow commands use both single hyphen arguments (e.g. -help) that denote general nextflow arguments and double hyphen arguments (e.g. --ensemblVersion) that denote workflow specific parameters.  Take care to use the proper number of hyphens for each argument.
 
 <br>
@@ -112,7 +113,7 @@ While in the location containing the `NF_MAAgilent1ch_1.0.4` directory that was 
 #### 3a. Approach 1: Run the workflow on a GeneLab Agilent 1 Channel Microarray dataset
 
 ```bash
-nextflow run NF_MAAgilent1ch_1.0.4/main.nf \ 
+nextflow run NF_MAAgilent1ch_1.0.5/main.nf \ 
    -profile singularity \
    --osdAccession OSD-548 \
    --gldsAccession GLDS-548 
@@ -125,16 +126,30 @@ nextflow run NF_MAAgilent1ch_1.0.4/main.nf \
 > Note: Specifications for creating a runsheet manually are described [here](examples/runsheet/README.md).
 
 ```bash
-nextflow run NF_MAAgilent1ch_1.0.4/main.nf \ 
+nextflow run NF_MAAgilent1ch_1.0.5/main.nf \ 
    -profile singularity \
    --runsheetPath </path/to/runsheet> 
 ```
 
 <br>
 
+#### 3c. Approach 3: Run the workflow using an ISA Archive
+
+> Note: Specifications for the ISA Tab Archive format can be found [here](https://isa-specs.readthedocs.io/en/latest/isatab.html).
+
+```bash
+nextflow run NF_MAAgilent1ch_1.0.5/main.nf \ 
+   -profile singularity \
+   --osdAccession OSD-548 \
+   --gldsAccession GLDS-548 \
+   --isaArchivePath </path/to/isaArchive> 
+```
+
+<br>
+
 **Required Parameters For All Approaches:**
 
-* `NF_MAAgilent1ch_1.0.4/main.nf` - Instructs Nextflow to run the NF_MAAgilent1ch workflow 
+* `NF_MAAgilent1ch_1.0.5/main.nf` - Instructs Nextflow to run the NF_MAAgilent1ch workflow 
 
 * `-profile` - Specifies the configuration profile(s) to load, `singularity` instructs Nextflow to setup and use singularity for all software called in the workflow
 
@@ -155,18 +170,30 @@ nextflow run NF_MAAgilent1ch_1.0.4/main.nf \
 
 <br>
 
+**Additional Required Parameters For [Approach 3](#3c-approach-3-run-the-workflow-using-an-isa-archive):**
+
+* `--osdAccession OSD-###` – specifies the OSD ID to process through the NF_MAAgilent1ch workflow (replace ### with the OSD number)
+
+* `--gldsAccession GLDS-###` – specifies the GLDS ID to process through the NF_MAAgilent1ch workflow (replace ### with the GLDS number) 
+
+* `--isaArchivePath` - specifies a local or URL path to an *ISA.zip (Default: *ISA.zip is automatically fetched from the GeneLab Repository for the GLDS dataset being processed) 
+
+<br>
+
 **Optional Parameters:**
 
 * `--skipVV` - skip the automated V&V processes (Default: the automated V&V processes are active) 
 
-* `--outputDir` - specifies the directory to save the raw and processed data files (Default: files are saved in the launch directory)  
+* `--skipDE` - skip the differential expression analysis (Default: the differential expression analysis is performed)
+
+* `--resultsDir` - specifies the output directory for all files produced by the workflow (Default: <OSD-NNN_GLDS-NNN> if OSD and GLDS accessions are specified.  Otherwise, the workflow launch directory.)  
 
 <br>
 
 All parameters listed above and additional optional arguments for the NF_MAAgilent1ch workflow, including debug related options that may not be immediately useful for most users, can be viewed by running the following command:
 
 ```bash
-nextflow run NF_MAAgilent1ch_1.0.4/main.nf --help
+nextflow run NF_MAAgilent1ch_1.0.5/main.nf --help
 ```
 
 See `nextflow run -h` and [Nextflow's CLI run command documentation](https://nextflow.io/docs/latest/cli.html#run) for more options and details common to all nextflow workflows.
@@ -180,13 +207,14 @@ See `nextflow run -h` and [Nextflow's CLI run command documentation](https://nex
 All R code steps and output are rendered within a Quarto document yielding the following:
 
    - Output:
-     - NF_MAAgilent1ch_1.0.4.html (html report containing executed code and output including QA plots)
+     - NF_MAAgilent1ch_1.0.5.html (html report containing executed code and output including QA plots)
   
 
 The outputs from the Analysis Staging and V&V Pipeline Subworkflows are described below:
-> Note: The outputs from the Agilent 1 Channel Microarray Processing Subworkflow are documented in the [GL-DPPD-7112.md](../../../Pipeline_GL-DPPD-7112_Versions/GL-DPPD-7112.md) processing protocol.
+> Note: The outputs from the Agilent 1 Channel Microarray Processing Subworkflow are documented in the [GL-DPPD-7112-A.md](../../../Pipeline_GL-DPPD-7112_Versions/GL-DPPD-7112-A.md) processing protocol.
 
 **Analysis Staging Subworkflow**
+> Note: only applicable for [Approach 1](#3a-approach-1-run-the-workflow-on-a-genelab-agilent-1-channel-microarray-dataset) and [Approach 3](#3c-approach-3-run-the-workflow-using-an-isa-archive)
 
    - Output:
      - \*_microarray_v1_runsheet.csv (table containing metadata required for processing, including the raw reads files location)

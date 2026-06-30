@@ -8,9 +8,11 @@ import pandas as pd
 
 AGILENT_SOFTWARE_DPPD = [
     "R",
+    "Bioconductor",
     "DT",
     "dplyr",
     "stringr",
+    "purrr",
     "R.utils",
     "limma",
     "glue",
@@ -36,13 +38,14 @@ ASSUMED_SOFTWARE = [{
 ## Used when the R library metadata doesn't encode any URLS
 HOMEPAGE_MAP = {
     "statmod":"https://cran.r-project.org/web/packages/statmod/index.html",
-    "biomaRt":"https://bioconductor.org/packages/3.14/bioc/html/biomaRt.html", # UPDATE ON biomaRt version update
+    "biomaRt":"https://bioconductor.org/packages/3.22/bioc/html/biomaRt.html", # UPDATE ON biomaRt version update
 }
 
 @click.command()
 @click.argument("input_yaml", type=click.Path(exists=True))
 @click.argument("filename")
-def yamlToMarkdown(input_yaml: Path, filename: str):
+@click.argument("skip_de", type=click.BOOL)
+def yamlToMarkdown(input_yaml: Path, filename: str, skip_de: bool):
     """ Using a software versions """
     with open(input_yaml, "r") as f:
         data = yaml.safe_load(f)
@@ -53,6 +56,11 @@ def yamlToMarkdown(input_yaml: Path, filename: str):
     # If data files are not compressed, won't use R.utils to unzip them during processing
     if not filename.endswith('.gz'):
         AGILENT_SOFTWARE_DPPD.remove('r.utils')
+
+    if skip_de:
+        AGILENT_SOFTWARE_DPPD.remove('matrixstats')
+        AGILENT_SOFTWARE_DPPD.remove('statmod')
+        AGILENT_SOFTWARE_DPPD.remove('matrixstats')
 
     # Filter to direct software used (i.e. exclude dependencies of the software)
     df = df.loc[df["name"].str.lower().isin(AGILENT_SOFTWARE_DPPD)]
