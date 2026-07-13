@@ -7,7 +7,7 @@ process PROCESS_AGILE1CH {
   input:
     path(qmd) // quarto qmd file to render
     path(runsheet_csv) // runsheet to supply as parameter
-    path(annotation_file_path) // runsheet to supply as parameter
+    path(annotation_file_path) // gene annotation file
     tuple val(ensemblVersion), val(ensemblSource)
     val(limit_biomart_query) // DEBUG option, limits biomart queries to the number specified if not set to false
     val(skipDE) // whether to skip DE
@@ -22,7 +22,7 @@ process PROCESS_AGILE1CH {
     path("versions.yml"), emit: versions // Note: Quarto version captured in script body.  R versions captured during render (part of qmd code).
 
   script:
-    def limit_biomart_query_parameter = limit_biomart_query ? "-P DEBUG_limit_biomart_query:${limit_biomart_query}" : ''
+    def limit_biomart_query_parameter = limit_biomart_query > 0 ? "-P DEBUG_limit_biomart_query:${limit_biomart_query}" : ''
     def run_DE = skipDE ? "-P run_DE:'false'" : ''
     """
         export HOME=\$PWD;

@@ -10,9 +10,9 @@ _anchors:
   neverPublished: &neverPublished
     subcategory: null
     subdirectory: null
-    publish to repo: false
-    include subdirectory in table: false
-    table order: -1
+    publish_to_repo: false
+    include_subdirectory_in_table: false
+    table_order: -1
 
 # configuration for microarray data
 Staging:
@@ -206,9 +206,9 @@ data assets:
     resource categories: &DGEAnalysisData
       subcategory: Differential Expression Analysis Data
       subdirectory: ""
-      publish to repo: true
-      include subdirectory in table: false
-      table order: 14
+      publish_to_repo: true
+      include_subdirectory_in_table: false
+      table_order: 14
       
   DE contrasts table:
     processed location: 
@@ -231,9 +231,9 @@ data assets:
     resource categories:
       subcategory: Raw Intensities Table
       subdirectory: ""
-      publish to repo: true
-      include subdirectory in table: false
-      table order: 1
+      publish_to_repo: true
+      include_subdirectory_in_table: false
+      table_order: 1
 
   normalized expression table:
     processed location: 
@@ -246,9 +246,9 @@ data assets:
     resource categories:
       subcategory: Normalized Expression Table
       subdirectory: ""
-      publish to repo: true
-      include subdirectory in table: false
-      table order: 2
+      publish_to_repo: true
+      include_subdirectory_in_table: false
+      table_order: 2
 
   DE annotated table:
     processed location: 

@@ -15,12 +15,15 @@ process UPDATE_ISA_TABLES {
 
   script:
     """
-    update_curation_table.py  --root-path ${ data_dir } \\
-                              --runsheet-path ${ runsheet } \\
-                              --plug-in-dir ${ dp_tools__agilent_1_channel } \\
+    update_curation_table.py  --root-path ${ data_dir } \
+                              --runsheet-path ${ runsheet } \
+                              --plug-in-dir ${ dp_tools__agilent_1_channel } \
                               --isa-path ${ isa_archive }
 
     # Update assay table with gldsAccession
-    sed -i 's/${ params.osdAccession }/${ params.gldsAccession }/g' updated_curation_tables/a*.txt
+    for i in updated_curation_tables/a*.txt; do
+      sed 's/${ params.osdAccession }/${ params.gldsAccession }/g' \$i > \$i.tmp
+      mv \$i.tmp \$i
+    done
     """
 }

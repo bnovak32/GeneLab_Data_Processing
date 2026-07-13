@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 input=$1
 
 # Remove leading and trailing brackets

@@ -1,4 +1,23 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
+""" This script takes as input a text file with the software versions reported in format:
+- name: software_name1
+  version: version1 
+  homepage: software_homepage1
+  workflow task: workflow_task_name1
+- name: software_name2
+  version: version2
+  homepage: software_homepage2
+  workflow task: workflow_task_name2
+
+and outputs a markdown table with the format:
+
+| Program       | Version  | Relevant Links     |
+|:--------------|:---------|:-------------------|
+| sofware_name1 | version1 | software_homepage1 |
+| sofware_name2 | version2 | software_homepage2 |
+
+"""
+
 from pathlib import Path
 
 import yaml
@@ -41,11 +60,8 @@ HOMEPAGE_MAP = {
     "biomaRt":"https://bioconductor.org/packages/3.22/bioc/html/biomaRt.html", # UPDATE ON biomaRt version update
 }
 
-@click.command()
-@click.argument("input_yaml", type=click.Path(exists=True))
-@click.argument("filename")
-@click.argument("skip_de", type=click.BOOL)
-def yamlToMarkdown(input_yaml: Path, filename: str, skip_de: bool):
+
+def yaml_to_markdown(input_yaml: Path, filename: str, skip_de: bool):
     """ Using a software versions """
     with open(input_yaml, "r") as f:
         data = yaml.safe_load(f)
@@ -60,27 +76,31 @@ def yamlToMarkdown(input_yaml: Path, filename: str, skip_de: bool):
     if skip_de:
         AGILENT_SOFTWARE_DPPD.remove('matrixstats')
         AGILENT_SOFTWARE_DPPD.remove('statmod')
-        AGILENT_SOFTWARE_DPPD.remove('matrixstats')
 
     # Filter to direct software used (i.e. exclude dependencies of the software)
     df = df.loc[df["name"].str.lower().isin(AGILENT_SOFTWARE_DPPD)]
 
     assert len(AGILENT_SOFTWARE_DPPD) == len(df), f"Not all software accounted for! Missing: {set(AGILENT_SOFTWARE_DPPD) - set(df['name'].str.lower())}"
 
-    print(df.apply(lambda row: print(row) , axis="columns"))
-    df['homepage'] = df.apply(lambda row: HOMEPAGE_MAP[row['name']] if row['homepage'] == "NO URLS ENCODED" else row['homepage'], axis="columns")
+    df['homepage'] = df.apply(lambda row: HOMEPAGE_MAP[row['name']]
+                              if row['homepage'] == "NO URLS ENCODED"
+                              else row['homepage'], axis="columns")
 
-    print(df[['name','version','homepage']])
-
-    df = df.rename({"name":"Program","version":"Version","homepage":"Relevant Links"}, axis="columns")
+    df = df[["name", "version", "homepage"]]
+    print(df)
+    df = df.rename({"name":"Program","version":"Version","homepage":"Relevant Links"},
+                   axis="columns")
 
     # Sort by program name for deterministic output
     df = df.sort_values("Program")
+    df.to_markdown("software_versions_GLmicroarray.md", index=False)
 
-    with open("software_versions_GLmicroarray.md", "w") as f:
-        f.write(df[["Program","Version","Relevant Links"]].to_markdown(index = False))
-    
-    
-if __name__ == '__main__':
-    yamlToMarkdown()
+if __name__ == "__main__":
+    @click.command()
+    @click.argument("input_yaml", type=click.Path(exists=True))
+    @click.argument("filename")
+    @click.argument("skip_de", type=click.BOOL)
+    def cli(input_yaml, filename, skip_de):
+        yaml_to_markdown(Path(input_yaml), filename, skip_de)
 
+    cli()

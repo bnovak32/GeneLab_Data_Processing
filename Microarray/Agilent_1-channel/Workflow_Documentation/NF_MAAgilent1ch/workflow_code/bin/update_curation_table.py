@@ -43,7 +43,7 @@ def main(root_dir: Path, runsheet_path: Path, plug_in_dir: Path, isa_path: Path)
     class ISA_ASSET:
         path = isa_path
         config = {
-            "resource categories": {"publish to repo": False}
+            "resource categories": {"publish_to_repo": False}
         }
 
     ds.dataset.data_assets["ISA Archive"] = ISA_ASSET()

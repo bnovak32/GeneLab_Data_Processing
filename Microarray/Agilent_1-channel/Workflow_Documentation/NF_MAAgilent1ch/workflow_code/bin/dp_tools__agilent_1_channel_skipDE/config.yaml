@@ -10,7 +10,7 @@ _anchors:
   neverPublished: &neverPublished
     subcategory: null
     subdirectory: null
-    publish to repo: false
+    publish_to_repo: false
     include subdirectory in table: false
     table order: -1
 
@@ -206,7 +206,7 @@ data assets:
     resource categories:
       subcategory: Raw Intensities Table
       subdirectory: ""
-      publish to repo: true
+      publish_to_repo: true
       include subdirectory in table: false
       table order: 1
 
@@ -221,7 +221,7 @@ data assets:
     resource categories:
       subcategory: Normalized Expression Table
       subdirectory: ""
-      publish to repo: true
+      publish_to_repo: true
       include subdirectory in table: false
       table order: 2
 

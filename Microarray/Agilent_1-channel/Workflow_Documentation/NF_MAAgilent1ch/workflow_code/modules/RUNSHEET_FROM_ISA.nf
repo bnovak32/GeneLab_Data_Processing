@@ -25,6 +25,6 @@ process RUNSHEET_FROM_ISA {
       --plugin-dir dp_tools__agilent_1_channel \
       --isa-archive ${ isaArchive }
 
-    ${params.isaArchivePath ? "cp ${ isaArchive } ." : ""} // Publish ISA.zip provided by --isaArchivePath
+    ${params.isaArchivePath ? "cp ${ isaArchive } ." : ""} # Publish ISA.zip provided by --isaArchivePath
     """
 }

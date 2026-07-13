@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com///nextflow_schema.json",
+  "title": "GeneLab NF_MAAgilent1ch parameters",
+  "description": "NASA GeneLab Agilent 1 Channel Microarray Workflow for Pipeline Document GL-DPPD-7112-A",
+  "type": "object",
+    "$defs": {
+        "basic_options": {
+            "title": "Basic options",
+            "type": "object",
+            "fa_icon": "fas fa-cogs",
+            "description": "Basic options for the pipeline, typically set on the command line.",
+            "help_text": "",
+            "properties": {
+                "osdAccession": {
+                    "type": "string",
+                    "default": "",
+                    "description": "the OSD accession ID for the OSDR dataset"
+                },
+                "gldsAccession": {
+                    "type": "string",
+                    "default": "",
+                    "description": "the GLDS accession ID for the OSDR dataset"
+                },
+                "runsheetPath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "path to runsheet"
+                },
+                "skipDE": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "skip Differential Expression steps"
+                },
+                "skipVV": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "skip Validation and Verification steps"
+                },
+                "resultsDir": {
+                    "type": "string",
+                    "default": ".",
+                    "description": "location for output from the workflow (including raw data and metadata)"
+                },
+                "help": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "display help message and exit"
+                }
+            }
+        },
+        "advanced_options": {
+            "title": "Advanced options",
+            "type": "object",
+            "fa_icon": "fas fa-cogs",
+            "description": "Advanced options for the pipeline, typically set in a config file.",
+            "help_text": "",
+            "properties": {
+                "referenceStorePath": {
+                    "type": "string",
+                    "default": "./References",
+                    "description": "path to custom annotation references"
+                },
+                "biomart_attribute": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Manually sets a value for the biomart_attribute column in the runsheet if the 'Array design REF' column is not present in the ISA file."
+                },
+                "isaArchivePath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "path to ISA archive (alternative to automatically downloading from OSDR)"
+                },
+                "annotation_file_path": {
+                    "type": "string",
+                    "default": "https://raw.githubusercontent.com/nasa/GeneLab_Data_Processing/GL_RefAnnotTable-A_1.1.0/GeneLab_Reference_Annotations/Pipeline_GL-DPPD-7110_Versions/GL-DPPD-7110-A/GL-DPPD-7110-A_annotations.csv",
+                    "description": "path to GeneLab annotation reference file linking organisms to annotation files"
+                },
+                "annotation_config_path": {
+                    "type": "string",
+                    "default": "../../examples/annotations/config.csv",
+                    "description": "custom probe annotation config file"
+                },
+                "limit_biomart_query": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Queries the first N BioMart IDs if set to a number > 0. Useful for testing the workflow with a limited number of IDs. If set to 0, all IDs will be queried."
+                },
+                "max_flag_code": {
+                    "type": "integer",
+                    "default": 80,
+                    "description": "Maximum flag value allowed, exceeding this value during V&V will cause the workflow to halt"
+                }
+            }
+        },
+        "workflow_configuration": {
+            "title": "Workflow configuration",
+            "type": "object",
+            "fa_icon": "fas fa-file-import",
+            "description": "Less common options for the pipeline, typically set in a config file.",
+            "help_text": "",
+            "properties": {
+                "publish_dir_mode": {
+                    "type": "string",
+                    "default": "link",
+                    "description": "Nextflow publishDir mode for handling output files",
+                    "enum": ["copy", "link", "symlink", "move"],
+                    "hidden": true
+                },
+                "trace_report_suffix": {
+                    "type": "string",
+                    "fa_icon": "far calendar",
+                    "description": "Suffix to add to the trace report filename. Default is the date and time in the format yyyy-MM-dd_HH-mm-ss.",
+                    "hidden": true
+                }
+            }
+        }
+  },
+  "allOf": [
+    {
+      "$ref": "#/$defs/basic_options"
+    },
+    {
+      "$ref": "#/$defs/advanced_options"
+    },
+    {
+      "$ref": "#/$defs/workflow_configuration"
+    }
+  ]
+}
