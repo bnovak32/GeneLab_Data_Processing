@@ -38,7 +38,7 @@ workflow {
 ************************************************
 
 Usage example 1: Processing OSDR datasets
-    > nextflow run ./main.nf --osdAccession OSD-548 --gldsAccession GLDS-548
+    > nextflow run ./main.nf --accession OSD-548
 
 Usage example 2: Processing Other datasets (requires a user-created runsheet)
     > nextflow run ./main.nf --runsheetPath </path/to/runsheet>
