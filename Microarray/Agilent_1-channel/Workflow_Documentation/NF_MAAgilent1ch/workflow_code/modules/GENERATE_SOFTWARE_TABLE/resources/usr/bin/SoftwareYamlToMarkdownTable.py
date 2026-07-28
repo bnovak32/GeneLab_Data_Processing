@@ -31,12 +31,9 @@ AGILENT_SOFTWARE_DPPD = [
     "DT",
     "dplyr",
     "stringr",
-    "purrr",
-    "R.utils",
     "limma",
     "glue",
     "ggplot2",
-    "biomaRt",
     "matrixStats",
     "statmod",
     "dp_tools",
@@ -57,7 +54,6 @@ ASSUMED_SOFTWARE = [{
 ## Used when the R library metadata doesn't encode any URLS
 HOMEPAGE_MAP = {
     "statmod":"https://cran.r-project.org/web/packages/statmod/index.html",
-    "biomaRt":"https://bioconductor.org/packages/3.22/bioc/html/biomaRt.html", # UPDATE ON biomaRt version update
 }
 
 
@@ -68,10 +64,6 @@ def yaml_to_markdown(input_yaml: Path, filename: str, skip_de: bool):
 
     data.extend(ASSUMED_SOFTWARE)
     df = pd.DataFrame(data)
-
-    # If data files are not compressed, won't use R.utils to unzip them during processing
-    if not filename.endswith('.gz'):
-        AGILENT_SOFTWARE_DPPD.remove('r.utils')
 
     if skip_de:
         AGILENT_SOFTWARE_DPPD.remove('matrixstats')

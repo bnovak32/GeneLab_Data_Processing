@@ -22,7 +22,6 @@ params:
   ensembl_version: NULL # str, Used to determine ensembl version
   local_annotation_dir: NULL
   annotation_config_path: NULL
-  DEBUG_limit_biomart_query: NULL # int, If supplied, only the first n probeIDs are queried
   run_DE: 'true'
 ---
 
@@ -61,36 +60,6 @@ dir.create(DIR_DGE)
 #| message = FALSE
 print("Loading Runsheet...") # NON_DPPD
 
-# Utility function to improve robustness of function calls
-# Used to remedy intermittent internet issues during runtime 
-retry_with_delay <- function(func, ...) {
-  max_attempts = 5
-  initial_delay = 10
-  delay_increase = 30
-  attempt <- 1
-  current_delay <- initial_delay
-  while (attempt <= max_attempts) {
-    result <- tryCatch(
-      expr = func(...),
-      error = function(e) e
-    )
-    
-    if (!inherits(result, "error")) {
-      return(result)
-    } else {
-      if (attempt < max_attempts) {
-        message(paste("Retry attempt", attempt, "failed for function with name <", deparse(substitute(func)) ,">. Retrying in", current_delay, "second(s)..."))
-        Sys.sleep(current_delay)
-        current_delay <- current_delay + delay_increase
-      } else {
-        stop(paste("Max retry attempts reached. Last error:", result$message))
-      }
-    }
-    
-    attempt <- attempt + 1
-  }
-}
-
 # fileEncoding removes strange characters from the column names
 df_rs <- read.csv(runsheet, check.names = FALSE, fileEncoding = 'UTF-8-BOM')
 
@@ -99,63 +68,14 @@ print("Here is the embedded runsheet")
 DT::datatable(df_rs)
 # NON_DPPD:END
 print("Loading Raw Data...") # NON_DPPD
-all_true <- function(i_vector) {
-  if ( length(i_vector) == 0 ) {
-    stop(paste("Input vector is length zero"))
-  }
-  all(i_vector)
-}
-
-# Define paths to raw data files
-runsheet_paths_are_URIs <- function(df_runsheet) {
-  all_true(stringr::str_starts(df_runsheet$`Array Data File Path`, "https"))
-}
-
-
-# Download raw data files
-download_files_from_runsheet <- function(df_runsheet) {
-  urls <- df_runsheet$`Array Data File Path`
-  destinationFiles <- df_runsheet$`Array Data File Name`
-
-  mapply(function(url, destinationFile) {
-    print(paste0("Downloading from '", url, "' TO '", destinationFile, "'"))
-    if ( file.exists(destinationFile ) ) {
-      warning(paste( "Using Existing File:", destinationFile ))
-    } else {
-      download.file(url, destinationFile)
-    }
-  }, urls, destinationFiles)
-
-  destinationFiles # Return these paths
-}
-
-if ( runsheet_paths_are_URIs(df_rs) ) {
-  print("Determined Raw Data Locations are URIS")
-  local_paths <- retry_with_delay(download_files_from_runsheet, df_rs)
-} else {
-  print("Determined Raw Data Locations are local paths")
-  local_paths <- df_rs$`Array Data File Path`
-}
-
-
-# uncompress files if needed
-if ( all_true(stringr::str_ends(local_paths, ".gz")) ) {
-  print("Determined these files are gzip compressed... uncompressing now")
-  # This does the decompression
-  lapply(local_paths, R.utils::gunzip, remove = FALSE, overwrite = TRUE)
-  # This removes the .gz extension to get the uncompressed filenames
-  local_paths <- vapply(local_paths, 
-                        stringr::str_replace, # Run this function against each item in 'local_paths'
-                        FUN.VALUE = character(1),  # Except an character vector as a return
-                        USE.NAMES = FALSE,  # Don't use the input to assign names for the returned list
-                        pattern = ".gz$", # first argument for applied function
-                        replacement = ""  # second argument for applied function
-                        )
-}
-
+local_paths <- ifelse(
+  stringr::str_detect(df_rs$`Array Data File Path`, "\\.gz$"),
+  stringr::str_remove(df_rs$`Array Data File Name`, "\\.gz$"),
+  df_rs$`Array Data File Name`
+)
 df_local_paths <- data.frame(`Sample Name` = df_rs$`Sample Name`, `Local Paths` = local_paths, check.names = FALSE)
 # NON_DPPD:START
-print("Raw Data Loaded Successfully")
+print("Raw Data Location Resolved")
 DT::datatable(df_local_paths)
 # NON_DPPD:END
 
@@ -413,9 +333,9 @@ boxplot_expression_safe_margin(norm_data)
 #| message: false
 shortened_organism_name <- function(long_name) {
   #' Convert organism names like 'Homo Sapiens' into 'hsapiens'
+
   tokens <- long_name %>% stringr::str_split(" ", simplify = TRUE)
   genus_name <- tokens[1]
-
   species_name <- tokens[2]
 
   short_name <- stringr::str_to_lower(paste0(substr(genus_name, start = 1, stop = 1), species_name))
@@ -443,139 +363,166 @@ get_biomart_attribute <- function(df_rs) {
   }
 }
 
-get_ensembl_genomes_mappings_from_ftp <- function(organism, ensembl_genomes_portal, ensembl_genomes_version, biomart_attribute) {
-  #' Obtain mapping table directly from ftp.  Useful when biomart live service no longer exists for desired version
-  
-  request_url <- glue::glue("https://ftp.ebi.ac.uk/ensemblgenomes/pub/{ensembl_genomes_portal}/release-{ensembl_genomes_version}/mysql/{ensembl_genomes_portal}_mart_{ensembl_genomes_version}/{organism}_eg_gene__efg_{biomart_attribute}__dm.txt.gz")
-
-  print(glue::glue("Mappings file URL: {request_url}"))
-
-  # Create a temporary file name
-  temp_file <- tempfile(fileext = ".gz")
-
-  # Download the gzipped table file using the download.file function
-  download.file(url = request_url, destfile = temp_file, method = "libcurl") # Use 'libcurl' to support ftps
-
-  # Uncompress the file
-  uncompressed_temp_file <- tempfile()
-  gzcon <- gzfile(temp_file, "rt")
-  content <- readLines(gzcon)
-  writeLines(content, uncompressed_temp_file)
-  close(gzcon)
-
-
-  # Load the data into a dataframe
-  mapping <- read.table(uncompressed_temp_file, # Read the uncompressed file
-                        # Add column names as follows: MAPID, TAIR, PROBEID
-                        col.names = c("MAPID", "ensembl_gene_id", biomart_attribute),
-                        header = FALSE, # No header in original table
-                        sep = "\t") # Tab separated
-
-  # Clean up temporary files
-  unlink(temp_file)
-  unlink(uncompressed_temp_file)
-
-  return(mapping)
-}
-
 # Convert list of multi-mapped genes to string
 list_to_unique_piped_string <- function(str_list) {
   #! convert lists into strings denoting unique elements separated by '|' characters
   #! e.g. c("GO1","GO2","GO2","G03") -> "GO1|GO2|GO3"
+
   return(toString(unique(str_list)) %>% stringr::str_replace_all(pattern = stringr::fixed(", "), replacement = "|"))
 }
 
+# ---- Generic Ensembl FTP mart-dump helpers --------------------------------
+# Replaces live biomaRt::getBM() data queries with direct downloads of the same
+# flat "mart dump" tables biomaRt itself queries under the hood, for both main
+# Ensembl and Ensembl Genomes (plants/fungi/metazoa/protists/bacteria) releases.
+# No retry/chunking/Sys.sleep: these are static per-release files on a stable
+# FTP mirror, not a rate-limited live API, so a failed download is a real
+# failure worth surfacing immediately rather than silently retrying.
 
+resolve_mart_ftp_base <- function(division, organism, ensembl_version, ensembl_genomes_portal = NULL) {
+  #' Resolve the FTP mart directory + per-species dataset prefix for either
+  #' the main Ensembl release ("main") or an Ensembl Genomes division ("genomes")
+
+  if (division == "genomes") {
+    list(
+      ftp_dir        = glue::glue("https://ftp.ebi.ac.uk/ensemblgenomes/pub/{ensembl_genomes_portal}/release-{ensembl_version}/mysql/{ensembl_genomes_portal}_mart_{ensembl_version}"),
+      dataset_prefix = glue::glue("{organism}_eg_gene")
+    )
+  } else {
+    list(
+      ftp_dir        = glue::glue("https://ftp.ebi.ac.uk/pub/ensembl/release-{ensembl_version}/mysql/ensembl_mart_{ensembl_version}"),
+      dataset_prefix = glue::glue("{organism}_gene_ensembl")
+    )
+  }
+}
+
+download_mart_dump <- function(url, col_names = NULL) {
+  #' Download and load a single gzipped, tab-separated, headerless Ensembl "mart dump" table
+
+  options(timeout = 300) # Can be further increased for downloading large files
+  print(glue::glue("Mart dump URL: {url}"))
+  temp_file <- tempfile(fileext = ".gz")
+  download.file(url = url, destfile = temp_file, method = "libcurl") # libcurl needed for ftp(s) URLs
+  mapping <- read.table(gzfile(temp_file), header = FALSE, sep = "\t", quote = "", comment.char = "")
+  if (!is.null(col_names)) colnames(mapping)[seq_along(col_names)] <- col_names
+  unlink(temp_file)
+  return(mapping)
+}
+
+get_transcript_to_gene_mapping_from_ftp <- function(division, organism, ensembl_version, ensembl_genomes_portal = NULL) {
+  #' Transcript -> Gene, from the "*_transcript__main.txt.gz" mart dump.
+  #' Only used by the main-Ensembl probe->gene path (Probe -> Transcript -> Gene);
+  #' Ensembl Genomes divisions map probe -> gene directly and never call this.
+  #' NOTE: column positions (40 = ensembl_transcript_id, 14 = ensembl_gene_id)
+  #' reflect the Ensembl mart-dump schema as specified; re-verify against a
+  #' real file listing if this ever silently breaks after an Ensembl release.
+
+  loc <- resolve_mart_ftp_base(division, organism, ensembl_version, ensembl_genomes_portal)
+  url <- glue::glue("{loc$ftp_dir}/{loc$dataset_prefix}__transcript__main.txt.gz")
+  raw <- download_mart_dump(url)
+  stopifnot("Expected >= 40 columns in transcript main table; Ensembl mart-dump schema may have changed" = ncol(raw) >= 40)
+  raw %>% dplyr::transmute(ensembl_transcript_id = V40, ensembl_gene_id = V14) %>% dplyr::distinct()
+}
+
+get_probe_to_gene_mapping_from_ftp <- function(division, organism, ensembl_version, biomart_attribute, ensembl_genomes_portal = NULL) {
+  #' Probe -> Gene. The two BioMart divisions use different schemas here:
+  #'   Main Ensembl ("main"): the efg dm file maps probe -> TRANSCRIPT; a
+  #'     second join against the transcript__main table is required to reach gene.
+  #'   Ensembl Genomes ("genomes", e.g. Ensembl Plants): the efg dm file maps
+  #'     probe -> GENE directly for microarray platforms. No second join exists
+  #'     here -- attempting one would silently produce wrong/empty results,
+  #'     since the dm file's second column is already a gene ID, not a transcript ID.
+  #' Only the attribute-specific dm file (probe_dm below) is 
+  #' expected to legitimately be missing -- not every array design has a
+  #' registered efg_* attribute in Ensembl BioMart. A failure there is
+  #' treated as "fall back to custom annotation" (returns NULL), not an
+  #' error. transcript__main.txt.gz, in contrast, is a large stable file
+  #' that should always exist for a given release; a failure there is a
+  #' real problem (network/transient) and is allowed to propagate as an
+  #' actual error rather than being silently swallowed into a fallback.
+
+  loc <- resolve_mart_ftp_base(division, organism, ensembl_version, ensembl_genomes_portal)
+  dm_url <- glue::glue("{loc$ftp_dir}/{loc$dataset_prefix}__efg_{biomart_attribute}__dm.txt.gz")
+
+  probe_dm <- tryCatch(
+    if (division == "genomes") {
+      download_mart_dump(dm_url, col_names = c("MAPID", "ensembl_gene_id", biomart_attribute))
+    } else {
+      download_mart_dump(dm_url, col_names = c("MAPID", "ensembl_transcript_id", biomart_attribute))
+    },
+    error = function(e) {
+      message(glue::glue("Probe mapping file not available for attribute '{biomart_attribute}' ({e$message}); falling back to custom annotation"))
+      NULL
+    }
+  )
+
+  if (is.null(probe_dm)) return(NULL)
+
+  if (division == "genomes") {
+    return(probe_dm %>% dplyr::select(!!sym(biomart_attribute), ensembl_gene_id))
+  }
+
+  transcript_to_gene <- get_transcript_to_gene_mapping_from_ftp(division, organism, ensembl_version, ensembl_genomes_portal)
+
+  probe_dm %>%
+    dplyr::left_join(transcript_to_gene, by = "ensembl_transcript_id") %>%
+    dplyr::select(!!sym(biomart_attribute), ensembl_gene_id)
+}
+
+# ---- Main probe annotation resolution -------------------------------------
 organism <- shortened_organism_name(unique(df_rs$organism))
 annot_key <- ifelse(organism %in% c("athaliana"), 'TAIR', 'ENSEMBL')
+ENSEMBL_VERSION <- ensembl_version
+expected_attribute_name <- get_biomart_attribute(df_rs)
 
 if (organism %in% c("athaliana")) {
-  ENSEMBL_VERSION = ensembl_version
+  # Unchanged from the prior implementation: single-step Probe -> Gene lookup
+  # via Ensembl Genomes' own efg dm file, whose second column is already a
+  # gene ID for this division (not a transcript ID needing a further join).
+  
   ensembl_genomes_portal = "plants"
-  print(glue::glue("Using ensembl genomes ftp to get specific version of probe id mapping table. Ensembl genomes portal: {ensembl_genomes_portal}, version: {ENSEMBL_VERSION}"))
-  expected_attribute_name <- get_biomart_attribute(df_rs)
-  unique_probe_ids <- retry_with_delay(
-      get_ensembl_genomes_mappings_from_ftp,
+  print(glue::glue("Using Ensembl Genomes FTP to get probe mapping table. Portal: {ensembl_genomes_portal}, version: {ENSEMBL_VERSION}"))
+  
+  df_mapping <- get_probe_to_gene_mapping_from_ftp(
+      division = "genomes",
       organism = organism,
-      ensembl_genomes_portal = ensembl_genomes_portal,
-      ensembl_genomes_version = ENSEMBL_VERSION,
-      biomart_attribute = expected_attribute_name
+      ensembl_version = ENSEMBL_VERSION,
+      biomart_attribute = expected_attribute_name,
+      ensembl_genomes_portal = ensembl_genomes_portal
     )
 
-  # TAIR from the mapping tables tend to be in the format 'AT1G01010.1' but the raw data has 'AT1G01010'
+  # TAIR IDs in the mapping tables tend to be in the format 'AT1G01010.1' but the raw data has 'AT1G01010'
   # So here we remove the '.NNN' from the mapping table where .NNN is any number
   df_mapping$ensembl_gene_id <- stringr::str_replace_all(df_mapping$ensembl_gene_id, "\\.\\d+$", "")
 
   use_custom_annot <- FALSE
 } else {
-  # Use biomart from main Ensembl website which archives keep each release on the live service
-  # locate dataset
-  expected_dataset_name <- shortened_organism_name(unique(df_rs$organism)) %>% stringr::str_c("_gene_ensembl")
-  print(paste0("Expected dataset name: '", expected_dataset_name, "'"))
-  message(paste0("Expected dataset name: '", expected_dataset_name, "'")) # NON_DPPD
+  expected_dataset_name <- glue::glue("{organism}_gene_ensembl")
+  print(glue::glue("Expected dataset name: '{expected_dataset_name}'"))
+  message(glue::glue("Expected dataset name: '{expected_dataset_name}'")) # NON_DPPD
+  print(glue::glue("Expected attribute name: '{expected_attribute_name}'"))
+  message(glue::glue("Expected attribute name: '{expected_attribute_name}'")) # NON_DPPD
+  print(glue::glue("Searching for Ensembl Version: {ENSEMBL_VERSION}")) # NON_DPPD
 
-  expected_attribute_name <- get_biomart_attribute(df_rs)
-  print(paste0("Expected attribute name: '", expected_attribute_name, "'"))
-  message(paste0("Expected attribute name: '", expected_attribute_name, "'")) # NON_DPPD
+  probe_ids <- unique(norm_data$genes$ProbeName)
 
-  # Specify Ensembl version used in current GeneLab reference annotations
-  ENSEMBL_VERSION <- ensembl_version
-  print(paste0("Searching for Ensembl Version: ", ENSEMBL_VERSION)) # NON_DPPD
+  print(glue::glue("Attempting Ensembl FTP probe mapping table. Version: {ENSEMBL_VERSION}"))
+  df_mapping <- get_probe_to_gene_mapping_from_ftp(
+    division = "main",
+    organism = organism,
+    ensembl_version = ENSEMBL_VERSION,
+    biomart_attribute = expected_attribute_name
+  )
 
-  print(glue::glue("Using Ensembl biomart to get specific version of mapping table. Ensembl version: {ENSEMBL_VERSION}"))
+  if (!is.null(df_mapping)) {
+    use_custom_annot <- FALSE
+    # FTP has no server-side filter equivalent to getBM(filters=, values=)
+    # the full mart-dump file is always downloaded in full, then filtered
+    # client-side down to just this experiment's probes.
+    df_mapping <- df_mapping %>% dplyr::filter(!!sym(expected_attribute_name) %in% probe_ids)
 
-  # Check if organism/array design is supported in biomart
-  use_custom_annot <- TRUE
-
-  ensembl <- biomaRt::useEnsembl(biomart = "genes", version = ENSEMBL_VERSION)
-  ensembl_datasets <- biomaRt::listDatasets(ensembl)
-  if (expected_dataset_name %in% ensembl_datasets$dataset) {
-    ensembl <- biomaRt::useEnsembl(biomart = "genes", dataset = expected_dataset_name, version = ENSEMBL_VERSION)
-    ensembl_attributes <- biomaRt::listAttributes(ensembl)
-    if (expected_attribute_name %in% ensembl_attributes$name) {
-      use_custom_annot <- FALSE
-    }
-  }
-
-  if (!use_custom_annot) {
-    print(ensembl)
-
-    probe_ids <- unique(norm_data$genes$ProbeName)
-
-    # DEBUG:START
-    if ( is.integer(params$DEBUG_limit_biomart_query) && params$DEBUG_limit_biomart_query > 0 && params$DEBUG_limit_biomart_query < length(probe_ids) ) {
-      warning(paste("DEBUG MODE: Limiting query to", params$DEBUG_limit_biomart_query, "entries"))
-      message(paste("DEBUG MODE: Limiting query to", params$DEBUG_limit_biomart_query, "entries"))
-      probe_ids <- probe_ids[1:params$DEBUG_limit_biomart_query]
-    }
-    # DEBUG:END
-
-    # Create probe map
-    # Run Biomart Queries in chunks to prevent request timeouts
-    #   Note: If timeout is occurring (possibly due to larger load on biomart), reduce chunk size
-    CHUNK_SIZE= 500
-    probe_id_chunks <- split(probe_ids, ceiling(seq_along(probe_ids) / CHUNK_SIZE))
-    df_mapping <- data.frame()
-    for (i in seq_along(probe_id_chunks)) {
-      probe_id_chunk <- probe_id_chunks[[i]]
-      print(glue::glue("Running biomart query chunk {i} of {length(probe_id_chunks)}. Total probes IDS in query ({length(probe_id_chunk)})"))
-      message(glue::glue("Running biomart query chunk {i} of {length(probe_id_chunks)}. Total probes IDS in query ({length(probe_id_chunk)})")) # NON_DPPD
-      chunk_results <- biomaRt::getBM(
-          attributes = c(
-              expected_attribute_name,
-              "ensembl_gene_id"
-              ), 
-              filters = expected_attribute_name, 
-              values = probe_id_chunk, 
-              mart = ensembl)
-
-      if (nrow(chunk_results) > 0) {
-        df_mapping <- df_mapping %>% dplyr::bind_rows(chunk_results)
-      }
-      
-      Sys.sleep(10) # Slight break between requests to prevent back-to-back requests
-    }
   } else {
+    use_custom_annot <- TRUE
     print(glue::glue("Using custom probe annotation for organism: {unique(df_rs$organism)}"))
     expected_attribute_name <- 'ProbeName'
 
@@ -591,54 +538,28 @@ if (organism %in% c("athaliana")) {
     } else {
       warning("Need to provide both local_annotation_dir and annotation_config_path to use custom annotation.")
     }
+
     if (annot_type == 'agilent') {
-      print(ensembl)
+      message(glue::glue("Using Agilent Ensembl transcript annotation, resolved to genes via Ensembl FTP mart dump"))
 
       # read in AllAnnotations file and strip version off of Ensembl Transcript ID
       agilent_table <- read.delim(
           file.path(local_annotation_dir, annot_config$annot_filename[[1]]),
           header = TRUE, na.strings = c('NA', '')
-        )[c('ProbeID', 'EnsemblID')] %>% dplyr::filter(!is.na(EnsemblID)) %>%
+        )[c('ProbeID', 'EnsemblID')] %>%
+        dplyr::filter(!is.na(EnsemblID)) %>%
         dplyr::mutate(EnsemblID = stringr::str_split_i(EnsemblID, "\\.", 1))
 
       stopifnot(nrow(agilent_table) == length(unique(agilent_table$ProbeID)))
 
-      # DEBUG:START
-      if ( is.integer(params$DEBUG_limit_biomart_query) && params$DEBUG_limit_biomart_query > 0 && params$DEBUG_limit_biomart_query < nrow(agilent_table) ) {
-        warning(paste("DEBUG MODE: Limiting query to", params$DEBUG_limit_biomart_query, "entries"))
-        message(paste("DEBUG MODE: Limiting query to", params$DEBUG_limit_biomart_query, "entries"))
-        transcript_ids <- agilent_table$EnsemblID[1:params$DEBUG_limit_biomart_query]
-      } else {
-        transcript_ids <- agilent_table$EnsemblID
-      }
-      # DEBUG:END
+      id_map <- get_transcript_to_gene_mapping_from_ftp(
+        division = "main",
+        organism = organism,
+        ensembl_version = ENSEMBL_VERSION
+      ) %>%
+        dplyr::filter(ensembl_transcript_id %in% agilent_table$EnsemblID)
 
-      # Map Ensembl Transcript IDs to Ensembl Gene IDs using BioMart
-      # Run BioMart Queries in chunks to prevent request timeouts
-      #   Note: If timeout is occurring (possibly due to larger load on BioMart), reduce chunk size
-      CHUNK_SIZE= 500
-      transcript_id_chunks <- split(transcript_ids, ceiling(seq_along(transcript_ids) / CHUNK_SIZE))
-      id_map <- data.frame()
-      for (i in seq_along(transcript_id_chunks)) {
-        transcript_id_chunk <- transcript_id_chunks[[i]]
-        print(glue::glue("Running BioMart query chunk {i} of {length(transcript_id_chunks)}. Total transcript IDS in query ({length(transcript_id_chunk)})"))
-        message(glue::glue("Running BioMart query chunk {i} of {length(transcript_id_chunks)}. Total transcript IDS in query ({length(transcript_id_chunk)})"))
-        chunk_results <- biomaRt::getBM(
-            attributes = c(
-                "ensembl_transcript_id",
-                "ensembl_gene_id"
-                ), 
-                filters = "ensembl_transcript_id", 
-                values = transcript_id_chunk, 
-                mart = ensembl)
-
-        if (nrow(chunk_results) > 0) {
-          id_map <- id_map %>% dplyr::bind_rows(chunk_results)
-        }
-        Sys.sleep(10) # Slight break between requests to prevent back-to-back requests
-      }
-
-      df_mapping <- 
+      df_mapping <-
         dplyr::left_join(agilent_table, id_map, dplyr::join_by(EnsemblID == ensembl_transcript_id)) %>%
         dplyr::select(ProbeID, ensembl_gene_id)
 
@@ -656,7 +577,7 @@ if (organism %in% c("athaliana")) {
   }
 }
 
-# At this point, we have df_mapping from either the biomart live service or the ensembl genomes ftp archive depending on the organism
+# At this point, we have df_mapping from either the Ensembl FTP mart dumps (main or Ensembl Genomes) depending on the organism.
 # If no df_mapping obtained (e.g., not supported in biomart), use custom annotations; otherwise, merge in-house annotations to df_mapping
 
 if (!use_custom_annot || annot_type == 'agilent') {

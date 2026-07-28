@@ -1,15 +1,18 @@
 process PROCESS_AGILE1CH {
-  publishDir "${ params.resultsDir }/GeneLab",
+  publishDir "${publishdir}/GeneLab",
     pattern: "NF_MAAgilent1ch_v${workflow.manifest.version}_GLmicroarray.html",
     mode: params.publish_dir_mode
   stageInMode 'copy'
 
   input:
+    val(publishdir)
     path(qmd) // quarto qmd file to render
     path(runsheet_csv) // runsheet to supply as parameter
+    path(array_data_files) // staged, locally-named, decompressed raw array data files
     path(annotation_file_path) // gene annotation file
     tuple val(ensemblVersion), val(ensemblSource)
-    val(limit_biomart_query) // DEBUG option, limits biomart queries to the number specified if not set to false
+    path(referenceStorePath) // path to custom annotation references
+    path(annotation_config_path) // path to custom annotation config file
     val(skipDE) // whether to skip DE
 
   output:
@@ -22,7 +25,6 @@ process PROCESS_AGILE1CH {
     path("versions.yml"), emit: versions // Note: Quarto version captured in script body.  R versions captured during render (part of qmd code).
 
   script:
-    def limit_biomart_query_parameter = limit_biomart_query > 0 ? "-P DEBUG_limit_biomart_query:${limit_biomart_query}" : ''
     def run_DE = skipDE ? "-P run_DE:'false'" : ''
     """
         export HOME=\$PWD;
@@ -32,9 +34,8 @@ process PROCESS_AGILE1CH {
             -P 'runsheet:${runsheet_csv}' \
             -P 'annotation_file_path:${annotation_file_path}' \
             -P 'ensembl_version:${ensemblVersion}' \
-            -P 'local_annotation_dir:${params.referenceStorePath}' \
-            -P 'annotation_config_path:${params.annotation_config_path}' \
-            ${limit_biomart_query_parameter} \
+            -P 'local_annotation_dir:${referenceStorePath}' \
+            -P 'annotation_config_path:${annotation_config_path}' \
             ${run_DE}
 
         # Rename report

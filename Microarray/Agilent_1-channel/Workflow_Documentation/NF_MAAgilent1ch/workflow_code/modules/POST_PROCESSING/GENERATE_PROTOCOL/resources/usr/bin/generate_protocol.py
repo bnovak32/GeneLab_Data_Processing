@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This script generates a protocol text file for GeneLab RNA-seq data processing.
+This script generates a protocol text file for GeneLab Agilent_1-channel Microarray data processing.
 It reads software versions from a YAML file and incorporates other parameters.
 """
 
@@ -19,7 +19,7 @@ def parse_args():
     Returns:
         NameSpace: object holding input parameters 
     """
-    parser = argparse.ArgumentParser(description='Generate protocol file for GeneLab RNA-seq pipeline')
+    parser = argparse.ArgumentParser(description='Generate protocol file for GeneLab Agilent_1-channel Microarray pipeline')
     parser.add_argument('--outdir', required=True, type=Path,
                         help='Output directory for the protocol file')
     parser.add_argument('--software_table', required=True, type=Path,
@@ -29,7 +29,7 @@ def parse_args():
     parser.add_argument('--workflow_version', default='unknown',
                         help='Version of the NF_MAAgilent1ch workflow manifest')
     parser.add_argument('--organism', required=False,
-                        help='Organism name')
+                        help='Organism name in the format "homo_sapiens"')
     parser.add_argument('--reference_source', required=False,
                         help='Source of the reference annotation')
     parser.add_argument('--reference_version', required=False,
@@ -133,15 +133,14 @@ def create_header(assay_suffix, workflow_version):
     return header
 
 
-def create_annot_and_dge_section(organism, biomart_attribute, biomart_version, ensembl_version, 
+def create_annot_and_dge_section(organism, biomart_attribute, ensembl_version, 
                                 bioconductor_annotations, r_version, limma_version, annotation_versions,
                                 custom_annots=pd.DataFrame(), skip_DGE=False):
     """Generate the probe annotation and DGE protocol sections
 
     Args:
-        organism (str): full organism name
+        organism (str): full organism name lowercase with underscores instead of spaces (e.g., "homo_sapiens")
         biomart_attribute (str): Attribute for biomart query (name of the Agilent array as present in biomart or the custom config file, if applicable)
-        biomart_version (str): Bioconductor biomaRt software version
         ensembl_version (str): Ensembl reference version
         bioconductor_annotations (str): Bioconductor annotation package name
         r_version (str): R software version
@@ -158,7 +157,7 @@ def create_annot_and_dge_section(organism, biomart_attribute, biomart_version, e
     custom_annot_download_date = None
     custom_annot_filename = None
 
-    if not custom_annots.empty:
+    if not custom_annots.empty and biomart_attribute in custom_annots.index.values:
         custom_annot_source_name = custom_annots['annot_type'][biomart_attribute]
         custom_annot_filename = custom_annots['annot_filename'][biomart_attribute]
         if 'download_link' in custom_annots.columns:
@@ -181,14 +180,17 @@ def create_annot_and_dge_section(organism, biomart_attribute, biomart_version, e
 
 
     gene_mapping_step = ""
+    # Define mapping source type based on using probes (default, not using custom annotations) or Ensembl transcript IDs (if using custom annotations)
+    mapping = "probe"
     
-    organism_list=("Homo sapiens", "Mus musculus", "Rattus norvegicus", "Drosophila melanogaster", "Caenorhabditis elegans", "Danio rerio", "Saccharomyces cerevisiae")
+    organism_list=("homo_sapiens", "mus_musculus", "rattus_norvegicus", "drosophila_melanogaster", "caenorhabditis_elegans", "danio_rerio", "saccharomyces_cerevisiae")
 
     # Check the value of 'organism' variable and set 'gene_mapping_step' accordingly
     if biomart_attribute in custom_annots.index.values:
         if custom_annot_source_name is not None:
             if 'agilent' in custom_annot_source_name:
                 gene_mapping_step += "Ensembl transcript IDs "
+                mapping = "Ensembl Transcript ID"
             else:
                 gene_mapping_step += "Annotations "
             gene_mapping_step += f"were retrieved for each probe from {custom_annot_filename}, source: { custom_annot_source_name.replace('_', ' ').title() } "
@@ -196,16 +198,15 @@ def create_annot_and_dge_section(organism, biomart_attribute, biomart_version, e
                 gene_mapping_step += f"({custom_annot_download_link}, downloaded on {custom_annot_download_date}). "
             else:
                 gene_mapping_step += ". "
-            if 'agilent' in custom_annot_source_name:
-                gene_mapping_step += "Ensembl gene ID mappings were retrieved for each Ensembl Transcript ID "
-    if organism == "Arabidopsis thaliana":
-        gene_mapping_step += f"Ensembl gene ID mappings were retrieved for each probe using the Plants Ensembl database ftp server (plants.ensembl.org, release {ensembl_version})."
+    
+    if organism == "arabidopsis_thaliana":
+        database_name = "Plants Ensembl database"
+        database_url = "plants.ensembl.org"
     elif organism in organism_list:
-        if custom_annot_source_name is None:
-            gene_mapping_step += "Ensembl gene ID mappings were retrieved for each probe "
-        gene_mapping_step += f"using biomaRt (version {biomart_version}, Ensembl database (ensembl.org, release {ensembl_version})."
-    else:
-        gene_mapping_step += "Gene Mapping Step TBD."
+        database_name = "Ensembl database"
+        database_url = "ensembl.org"
+
+    gene_mapping_step += f"Ensembl gene ID mappings were retrieved for each {mapping} using the {database_name} ftp server ({database_url}, release {ensembl_version})."
     
     # Add gene annotations section
     # Gene annotations
@@ -247,8 +248,7 @@ def generate_protocol_content(args:argparse.Namespace, software_versions:dict, a
     description += f"The raw intensity data was background corrected and normalized across arrays via the limma (version {limma_version}) quantile method. "
     description += f"Normalized data quality assurance density, pseudo image, and MA plots were generated using limma (version {limma_version}), and boxplots were generated using ggplot2 (version {ggplot2_version})."
     
-    annot_and_dge_section = create_annot_and_dge_section(args.organism, args.biomart_attribute, 
-                                                         software_versions.get('biomaRt', 'unknown'),
+    annot_and_dge_section = create_annot_and_dge_section(args.organism, args.biomart_attribute,
                                                          args.reference_version, args.bioconductor_annotations,
                                                          software_versions.get('R', 'unknown'), limma_version, 
                                                          annotation_versions, custom_annots, args.skip_DGE)

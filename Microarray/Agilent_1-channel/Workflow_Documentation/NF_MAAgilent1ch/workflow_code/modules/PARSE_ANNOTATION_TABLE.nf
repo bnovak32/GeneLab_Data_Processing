@@ -25,7 +25,7 @@ process PARSE_ANNOTATION_TABLE {
 
     def organism_key = organism_sci.capitalize().replace("_"," ")
 
-    def organism_record = records.find { it -> it['species'] == organism_key }
+    def organism_record = records.find { rec -> rec['species'] == organism_key }
     if (organism_record == null) {
       throw new Exception("Organism '${organism_key}' not found in annotation table at ${annotations_csv_url_string}")
     } else {

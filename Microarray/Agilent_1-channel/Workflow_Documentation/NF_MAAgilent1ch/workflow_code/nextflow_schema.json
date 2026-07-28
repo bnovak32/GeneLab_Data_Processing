@@ -12,15 +12,10 @@
             "description": "Basic options for the pipeline, typically set on the command line.",
             "help_text": "",
             "properties": {
-                "osdAccession": {
+                "accession": {
                     "type": "string",
-                    "default": "",
-                    "description": "the OSD accession ID for the OSDR dataset"
-                },
-                "gldsAccession": {
-                    "type": "string",
-                    "default": "",
-                    "description": "the GLDS accession ID for the OSDR dataset"
+                    "description": "Input OSD or GLDS identifier as 'OSD-#' or 'GLDS-#' if processing an OSDR dataset.",
+                    "pattern": "^(OSD|GLDS)-[0-9]+$"
                 },
                 "runsheetPath": {
                     "type": "string",
@@ -37,10 +32,10 @@
                     "default": false,
                     "description": "skip Validation and Verification steps"
                 },
-                "resultsDir": {
+                "outdir": {
                     "type": "string",
-                    "default": ".",
-                    "description": "location for output from the workflow (including raw data and metadata)"
+                    "default": "${launchDir}",
+                    "description": "The output directory where the results will be saved. Absolute paths are required when running on cloud infrastructure."
                 },
                 "help": {
                     "type": "boolean",
@@ -69,7 +64,7 @@
                 "isaArchivePath": {
                     "type": "string",
                     "default": "",
-                    "description": "path to ISA archive (alternative to automatically downloading from OSDR)"
+                    "description": "path to ISA archive (alternative to automatically downloading from OSDR). '--accession' must also be used."
                 },
                 "annotation_file_path": {
                     "type": "string",
@@ -80,11 +75,6 @@
                     "type": "string",
                     "default": "../../examples/annotations/config.csv",
                     "description": "custom probe annotation config file"
-                },
-                "limit_biomart_query": {
-                    "type": "integer",
-                    "default": 0,
-                    "description": "Queries the first N BioMart IDs if set to a number > 0. Useful for testing the workflow with a limited number of IDs. If set to 0, all IDs will be queried."
                 },
                 "max_flag_code": {
                     "type": "integer",
@@ -107,11 +97,14 @@
                     "enum": ["copy", "link", "symlink", "move"],
                     "hidden": true
                 },
-                "trace_report_suffix": {
+                "api_url": {
                     "type": "string",
-                    "fa_icon": "far calendar",
-                    "description": "Suffix to add to the trace report filename. Default is the date and time in the format yyyy-MM-dd_HH-mm-ss.",
+                    "default": "https://visualization.osdr.nasa.gov/biodata/api/v2/dataset/*/",
                     "hidden": true
+                },
+                "dp_tools_plugin": {
+                    "type": "string",
+                    "description": "Alternative dp_tools plugin."
                 }
             }
         }

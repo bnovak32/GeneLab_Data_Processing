@@ -1,10 +1,11 @@
 process GENERATE_PROTOCOL {
   tag "${ params.gldsAccession }"
-  publishDir "${ params.resultsDir }/GeneLab",
+  publishDir "${ publishdir }/GeneLab",
     mode: params.publish_dir_mode,
     pattern: "*.txt"
 
   input:
+    val(publishdir)
     val(ch_meta)
     path(software_versions_yaml)
     tuple val(ensemblVersion), val(ensemblSource)
@@ -29,7 +30,7 @@ process GENERATE_PROTOCOL {
         --organism "${ch_meta.organism}" \
         --reference_source ${ensemblSource} \
         --reference_version ${ensemblVersion} \
-        --biomart_attribute "${ch_meta.biomart_attribute}" \
+        --biomart_attribute "${ch_meta.biomart_id}" \
         --bioconductor_annotations ${bioconductor_annotations} \
         $annot_db_info_file \
         $custom_annot_file \
