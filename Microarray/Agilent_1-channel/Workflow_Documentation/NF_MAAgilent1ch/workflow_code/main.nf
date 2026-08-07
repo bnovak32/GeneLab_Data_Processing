@@ -109,7 +109,7 @@ Usage example 2: Processing Other datasets (requires a user-created runsheet)
       PARSE_ANNOTATION_TABLE.out.annotations_db_url,
       PARSE_ANNOTATION_TABLE.out.reference_version_and_source,
       channel.fromPath( params.referenceStorePath ),
-      channel.fromPath( params.annotation_config_path ),
+      channel.fromPath( params.array_annot_path ),
       params.skipDE
     )
 

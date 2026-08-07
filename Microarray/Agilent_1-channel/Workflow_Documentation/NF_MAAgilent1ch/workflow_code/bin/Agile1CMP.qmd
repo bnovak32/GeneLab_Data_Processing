@@ -21,7 +21,7 @@ params:
   annotation_file_path: NULL # str, Annotation file from 'genelab_annots_link' column of GeneLab Annotations file
   ensembl_version: NULL # str, Used to determine ensembl version
   local_annotation_dir: NULL
-  annotation_config_path: NULL
+  array_annot_path: NULL
   run_DE: 'true'
 ---
 
@@ -36,9 +36,9 @@ if (is.null(params$runsheet)) {
 
 runsheet = params$runsheet # <path/to/runsheet>
 
-# If using custom annotation, local_annotation_dir is path to directory containing annotation file and annotation_config_path is path/url to config file
+# If using custom annotation, local_annotation_dir is path to directory containing annotation file and array_annot_path is path/url to custom probe annotation file
 local_annotation_dir <- params$local_annotation_dir # <path/to/annotation_dir>
-annotation_config_path <- params$annotation_config_path # <path/to/config_file>
+array_annot_path <- params$array_annot_path # <path/to/probe_annot>
 
 message(params)
 
@@ -371,6 +371,36 @@ list_to_unique_piped_string <- function(str_list) {
   return(toString(unique(str_list)) %>% stringr::str_replace_all(pattern = stringr::fixed(", "), replacement = "|"))
 }
 
+# Utility function to improve robustness of function calls
+# Used to remedy intermittent internet issues during runtime 
+retry_with_delay <- function(func, ...) {
+  max_attempts = 5
+  initial_delay = 10
+  delay_increase = 30
+  attempt <- 1
+  current_delay <- initial_delay
+  while (attempt <= max_attempts) {
+    result <- tryCatch(
+      expr = func(...),
+      error = function(e) e
+    )
+    
+    if (!inherits(result, "error")) {
+      return(result)
+    } else {
+      if (attempt < max_attempts) {
+        message(paste("Retry attempt", attempt, "failed for function with name <", deparse(substitute(func)) ,">. Retrying in", current_delay, "second(s)..."))
+        Sys.sleep(current_delay)
+        current_delay <- current_delay + delay_increase
+      } else {
+        stop(paste("Max retry attempts reached. Last error:", result$message))
+      }
+    }
+    
+    attempt <- attempt + 1
+  }
+}
+
 # ---- Generic Ensembl FTP mart-dump helpers --------------------------------
 # Replaces live biomaRt::getBM() data queries with direct downloads of the same
 # flat "mart dump" tables biomaRt itself queries under the hood, for both main
@@ -401,8 +431,10 @@ download_mart_dump <- function(url, col_names = NULL) {
 
   options(timeout = 300) # Can be further increased for downloading large files
   print(glue::glue("Mart dump URL: {url}"))
+
   temp_file <- tempfile(fileext = ".gz")
   download.file(url = url, destfile = temp_file, method = "libcurl") # libcurl needed for ftp(s) URLs
+
   mapping <- read.table(gzfile(temp_file), header = FALSE, sep = "\t", quote = "", comment.char = "")
   if (!is.null(col_names)) colnames(mapping)[seq_along(col_names)] <- col_names
   unlink(temp_file)
@@ -413,15 +445,29 @@ get_transcript_to_gene_mapping_from_ftp <- function(division, organism, ensembl_
   #' Transcript -> Gene, from the "*_transcript__main.txt.gz" mart dump.
   #' Only used by the main-Ensembl probe->gene path (Probe -> Transcript -> Gene);
   #' Ensembl Genomes divisions map probe -> gene directly and never call this.
-  #' NOTE: column positions (40 = ensembl_transcript_id, 14 = ensembl_gene_id)
-  #' reflect the Ensembl mart-dump schema as specified; re-verify against a
-  #' real file listing if this ever silently breaks after an Ensembl release.
+  #' Detects IDs by content instead of hardcoding column positions
 
   loc <- resolve_mart_ftp_base(division, organism, ensembl_version, ensembl_genomes_portal)
   url <- glue::glue("{loc$ftp_dir}/{loc$dataset_prefix}__transcript__main.txt.gz")
-  raw <- download_mart_dump(url)
-  stopifnot("Expected >= 40 columns in transcript main table; Ensembl mart-dump schema may have changed" = ncol(raw) >= 40)
-  raw %>% dplyr::transmute(ensembl_transcript_id = V40, ensembl_gene_id = V14) %>% dplyr::distinct()
+  raw <- retry_with_delay(download_mart_dump, url) # <- retried: large, always-expected file
+
+  # Unversioned Ensembl gene/transcript IDs, e.g. ENSG00000210049 / ENSMUSG00000064336,
+  # ENST00000387314 / ENSMUST00000082387. Anchored with no trailing ".N" to
+  # exclude the separate versioned-ID columns present later in the same row.
+  gene_col_idx <- which(sapply(raw, function(col) any(grepl("^ENS[A-Z]*G[0-9]+$", col))))
+  transcript_col_idx <- which(sapply(raw, function(col) any(grepl("^ENS[A-Z]*T[0-9]+$", col))))
+
+  stopifnot(
+    "Could not uniquely identify gene ID column in transcript main table" = length(gene_col_idx) == 1,
+    "Could not uniquely identify transcript ID column in transcript main table" = length(transcript_col_idx) == 1
+  )
+
+  raw %>%
+    dplyr::transmute(
+      ensembl_transcript_id = .data[[paste0("V", transcript_col_idx)]],
+      ensembl_gene_id = .data[[paste0("V", gene_col_idx)]]
+    ) %>%
+    dplyr::distinct()
 }
 
 get_probe_to_gene_mapping_from_ftp <- function(division, organism, ensembl_version, biomart_attribute, ensembl_genomes_portal = NULL) {
@@ -527,16 +573,16 @@ if (organism %in% c("athaliana")) {
     expected_attribute_name <- 'ProbeName'
 
     annot_type <- 'NO_CUSTOM_ANNOT'
-    if (!is.null(local_annotation_dir) && !is.null(annotation_config_path)) {
-      config_df <- read.csv(annotation_config_path, row.names=1)
-      if (unique(df_rs$`biomart_attribute`) %in% row.names(config_df)) {
-        annot_config <- config_df[unique(df_rs$`biomart_attribute`), ]
+    if (!is.null(local_annotation_dir) && !is.null(array_annot_path)) {
+      probe_annot_df <- read.csv(array_annot_path, row.names=1)
+      if (unique(df_rs$`biomart_attribute`) %in% row.names(probe_annot_df)) {
+        annot_config <- probe_annot_df[unique(df_rs$`biomart_attribute`), ]
         annot_type <- annot_config$annot_type[[1]]
       } else {
-        warning(paste0("No entry for '", unique(df_rs$`biomart_attribute`), "' in provided config file: ", annotation_config_path))
+        warning(paste0("No entry for '", unique(df_rs$`biomart_attribute`), "' in provided config file: ", array_annot_path))
       }
     } else {
-      warning("Need to provide both local_annotation_dir and annotation_config_path to use custom annotation.")
+      warning("Need to provide both local_annotation_dir and array_annot_path to use custom annotation.")
     }
 
     if (annot_type == 'agilent') {
@@ -1040,18 +1086,7 @@ get_versions <- function() {
   return(versions_buffer)
 }
 
-## Note Libraries that were NOT used during processing
 versions_buffer <- get_versions()
-
-if (organism %in% c("athaliana") || (use_custom_annot && annot_type != 'agilent')) {
-  versions_buffer <- glue::glue_collapse(c(
-    versions_buffer,
-    glue::glue("- name: biomaRt"),
-    glue::glue("  version: (Not used for this dataset)"),
-    glue::glue("  homepage: https://bioconductor.org/packages/3.22/bioc/html/biomaRt.html"),
-    glue::glue("  workflow task: PROCESS_AGILE1CH")
-    ), sep = "\n")
-}
 
 ## Log same info into versions.txt file
 version_output_fn <- "versions.yml"

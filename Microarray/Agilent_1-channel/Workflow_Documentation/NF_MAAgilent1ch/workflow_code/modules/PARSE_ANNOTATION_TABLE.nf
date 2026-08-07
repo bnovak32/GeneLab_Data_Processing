@@ -54,7 +54,6 @@ process PARSE_ANNOTATION_TABLE {
       println "- annotations_db_info_url: ${annotations_db_info_url}"
       println "- ensemblVersion: ${ensemblVersion}"
       println "- ensemblSource: ${ensemblSource}"
-      println "- bioconductor_annotations: ${bioconductor_annotations}"
       println "--------------------------------------------------"
     }
 }

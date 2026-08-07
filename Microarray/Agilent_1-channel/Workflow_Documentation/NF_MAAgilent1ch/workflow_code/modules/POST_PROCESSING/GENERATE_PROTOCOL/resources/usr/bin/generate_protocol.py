@@ -40,8 +40,8 @@ def parse_args():
                         help='bioconductor annotation database name')
     parser.add_argument('--annotations_db_info', required=False, type=Path,
                         help='Annotation DB info file from GeneLab Reference Annotation database used')
-    parser.add_argument('--custom_annot_config', required=False, type=Path,
-                        help='Path to the custom reference configuration file')
+    parser.add_argument('--custom_annot_design', required=False, type=Path,
+                        help='Path to the custom probe annotation design info file')
     parser.add_argument('--skip-DGE', type=bool, required=False,
                         help="Was DGE performed.")
     return parser.parse_args()
@@ -140,12 +140,12 @@ def create_annot_and_dge_section(organism, biomart_attribute, ensembl_version,
 
     Args:
         organism (str): full organism name lowercase with underscores instead of spaces (e.g., "homo_sapiens")
-        biomart_attribute (str): Attribute for biomart query (name of the Agilent array as present in biomart or the custom config file, if applicable)
+        biomart_attribute (str): Attribute for biomart query (name of the Agilent array as present in biomart or the custom design info file, if applicable)
         ensembl_version (str): Ensembl reference version
         bioconductor_annotations (str): Bioconductor annotation package name
         r_version (str): R software version
         limma_version (str): limma software version
-        custom_annots (pd.DataFrame, optional): path to custom config file used during processing. Defaults to an empty path
+        custom_annots (pd.DataFrame, optional): path to custom probe annotation design info file used during processing. Defaults to an empty path
         skip_DGE (bool, optional): Whether or not DGE was skipped during processing. Defaults to False.
 
     Returns:
@@ -155,6 +155,7 @@ def create_annot_and_dge_section(organism, biomart_attribute, ensembl_version,
     custom_annot_source_name = None
     custom_annot_download_link = None
     custom_annot_download_date = None
+    custom_annot_create_date = None
     custom_annot_filename = None
 
     if not custom_annots.empty and biomart_attribute in custom_annots.index.values:
@@ -163,6 +164,8 @@ def create_annot_and_dge_section(organism, biomart_attribute, ensembl_version,
         if 'download_link' in custom_annots.columns:
             custom_annot_download_link = custom_annots['download_link'][biomart_attribute]
             custom_annot_download_date = custom_annots['download_date'][biomart_attribute]
+        if 'create_date' in custom_annots.columns:
+            custom_annot_create_date = custom_annots['create_date'][biomart_attribute]
 
     # Define versions for annotation package generation
     annot_doc = annotation_versions['annot_doc'] if 'annot_doc' in annotation_versions else 'GL-DPPD-7110-A'
@@ -195,7 +198,10 @@ def create_annot_and_dge_section(organism, biomart_attribute, ensembl_version,
                 gene_mapping_step += "Annotations "
             gene_mapping_step += f"were retrieved for each probe from {custom_annot_filename}, source: { custom_annot_source_name.replace('_', ' ').title() } "
             if custom_annot_download_link is not None:
-                gene_mapping_step += f"({custom_annot_download_link}, downloaded on {custom_annot_download_date}). "
+                created_text = ""
+                if custom_annot_create_date is not None:
+                    created_text = f"created {custom_annot_create_date}, "
+                gene_mapping_step += f" ({custom_annot_download_link}, {created_text}accessed {custom_annot_download_date})."
             else:
                 gene_mapping_step += ". "
     
@@ -239,8 +245,8 @@ def generate_protocol_content(args:argparse.Namespace, software_versions:dict, a
     ggplot2_version = software_versions.get('ggplot2', 'unknown')
 
     custom_annots = pd.DataFrame()
-    if args.custom_annot_config.exists() and args.custom_annot_config.is_file():
-        custom_annots = pd.read_csv(open(args.custom_annot_config, "r")).set_index('array_design')
+    if args.custom_annot_design.exists() and args.custom_annot_design.is_file():
+        custom_annots = pd.read_csv(open(args.custom_annot_design, "r")).set_index('array_design')
 
     description = f"In short, a runsheet containing raw data file location and processing metadata from the study's *ISA.zip file was generated using dp_tools (version {software_versions.get('dp_tools', 'unknown')}). "
     description += f"The raw array data files were loaded into R (version {software_versions.get('R', 'unknown')}) using limma (version {limma_version}). "
@@ -269,7 +275,7 @@ def generate_protocol_content(args:argparse.Namespace, software_versions:dict, a
         config += f"- Array design: {args.biomart_attribute}\n"
         config += f"- Custom annotation source: {custom_annots['annot_type'][args.biomart_attribute]}\n"
         config += f"- Custom annotation file: {custom_annots['annot_filename'][args.biomart_attribute]}\n"
-        if {custom_annots['download_link'][args.biomart_attribute]} is not None:
+        if custom_annots['download_link'][args.biomart_attribute] is not None:
             config += f"- Custom annotation download link: {custom_annots['download_link'][args.biomart_attribute]}\n"
             config += f"- Custom annotation download date: {custom_annots['download_date'][args.biomart_attribute]}\n"
     

@@ -12,7 +12,7 @@ process PROCESS_AGILE1CH {
     path(annotation_file_path) // gene annotation file
     tuple val(ensemblVersion), val(ensemblSource)
     path(referenceStorePath) // path to custom annotation references
-    path(annotation_config_path) // path to custom annotation config file
+    path(array_annot_path) // path to custom probe design info file
     val(skipDE) // whether to skip DE
 
   output:
@@ -35,7 +35,7 @@ process PROCESS_AGILE1CH {
             -P 'annotation_file_path:${annotation_file_path}' \
             -P 'ensembl_version:${ensemblVersion}' \
             -P 'local_annotation_dir:${referenceStorePath}' \
-            -P 'annotation_config_path:${annotation_config_path}' \
+            -P 'array_annot_path:${array_annot_path}' \
             ${run_DE}
 
         # Rename report
