@@ -1,29 +1,21 @@
 process UPDATE_ISA_TABLES {
   // Generates tabular data indicating genelab standard publishing files, md5sum generation, and tool version table formatting
-  tag "${ params.gldsAccession }"
-  publishDir "${ params.resultsDir }/GeneLab",
+  publishDir "${ data_dir }/GeneLab/updated_curation_tables",
     mode: params.publish_dir_mode
 
   input:
     path(data_dir)
     path(runsheet)
     path(isa_archive)
-    path(dp_tools__agilent_1_channel)
+    val(glds_accession)
 
   output:
-    path("updated_curation_tables") // directory containing extended ISA tables
+    path("a_*.txt"), emit: updated_assay_table
 
   script:
     """
-    update_curation_table.py  --root-path ${ data_dir } \
-                              --runsheet-path ${ runsheet } \
-                              --plug-in-dir ${ dp_tools__agilent_1_channel } \
-                              --isa-path ${ isa_archive }
-
-    # Update assay table with gldsAccession
-    for i in updated_curation_tables/a*.txt; do
-      sed 's/${ params.osdAccession }/${ params.gldsAccession }/g' \$i > \$i.tmp
-      mv \$i.tmp \$i
-    done
+    update_curation_table.py  --runsheet ${ runsheet } \
+                              --glds_accession ${ glds_accession } \
+                              --isa_zip ${ isa_archive }
     """
 }
