@@ -8,4 +8,4 @@ dependencies:
   - pip
   - setuptools=81.0.0
   - pip:
-    - git+https://github.com/torres-alexis/dp_tools.git@v1.3.11
+    - git+https://github.com/torres-alexis/dp_tools.git@v1.3.8
