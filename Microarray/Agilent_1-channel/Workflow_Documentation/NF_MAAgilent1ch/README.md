@@ -111,7 +111,7 @@ unzip NF_MAAgilent1ch_1.0.5.zip
 
 While in the location containing the `NF_MAAgilent1ch_1.0.5` directory that was downloaded in [step 2](#2-download-the-workflow-files), you are now able to run the workflow. Below are three examples of how to run the NF_MAAgilent1ch workflow:
 > [!NOTE]
-> Nextflow commands use both single hyphen arguments (e.g. -help) that denote general nextflow arguments and double hyphen arguments (e.g. --ensemblVersion) that denote workflow specific parameters.  Take care to use the proper number of hyphens for each argument.
+> Nextflow commands use both single hyphen arguments (e.g. -help) that denote general nextflow arguments and double hyphen arguments (e.g. --ensemblVersion) that denote workflow specific parameters. Take care to use the proper number of hyphens for each argument.
 
 <br>
 
@@ -120,15 +120,15 @@ While in the location containing the `NF_MAAgilent1ch_1.0.5` directory that was 
 ```bash
 nextflow run NF_MAAgilent1ch_1.0.5/main.nf \ 
    -profile singularity \
-   --osdAccession OSD-548 \
-   --gldsAccession GLDS-548 
+   --accession OSD-548
 ```
 
 <br>
 
 #### 3b. Approach 2: Run the workflow on a non-GLDS dataset using a user-created runsheet
 
-> Note: Specifications for creating a runsheet manually are described [here](examples/runsheet/README.md).
+> [!NOTE]
+> Specifications for creating a runsheet manually are described [here](examples/runsheet/README.md).
 
 ```bash
 nextflow run NF_MAAgilent1ch_1.0.5/main.nf \ 
@@ -140,13 +140,13 @@ nextflow run NF_MAAgilent1ch_1.0.5/main.nf \
 
 #### 3c. Approach 3: Run the workflow using an ISA Archive
 
-> Note: Specifications for the ISA Tab Archive format can be found [here](https://isa-specs.readthedocs.io/en/latest/isatab.html).
+> [!NOTE]
+> Specifications for the ISA Tab Archive format can be found [here](https://isa-specs.readthedocs.io/en/latest/isatab.html).
 
 ```bash
 nextflow run NF_MAAgilent1ch_1.0.5/main.nf \ 
    -profile singularity \
-   --osdAccession OSD-548 \
-   --gldsAccession GLDS-548 \
+   --accession OSD-548 \
    --isaArchivePath </path/to/isaArchive> 
 ```
 
@@ -163,9 +163,7 @@ nextflow run NF_MAAgilent1ch_1.0.5/main.nf \
 
 **Additional Required Parameters For [Approach 1](#3a-approach-1-run-the-workflow-on-a-genelab-agilent-1-channel-microarray-dataset):**
 
-* `--osdAccession OSD-###` – specifies the OSD ID to process through the NF_MAAgilent1ch workflow (replace ### with the OSD number)
-
-* `--gldsAccession GLDS-###` – specifies the GLDS ID to process through the NF_MAAgilent1ch workflow (replace ### with the GLDS number)  
+* `--accession` – The OSD or GLDS ID for the dataset to be processed, eg. `OSD-548` or `GLDS-548` 
 
 <br>
 
@@ -177,9 +175,7 @@ nextflow run NF_MAAgilent1ch_1.0.5/main.nf \
 
 **Additional Required Parameters For [Approach 3](#3c-approach-3-run-the-workflow-using-an-isa-archive):**
 
-* `--osdAccession OSD-###` – specifies the OSD ID to process through the NF_MAAgilent1ch workflow (replace ### with the OSD number)
-
-* `--gldsAccession GLDS-###` – specifies the GLDS ID to process through the NF_MAAgilent1ch workflow (replace ### with the GLDS number) 
+* `--accession` – The OSD or GLDS ID for the dataset to be processed, eg. `OSD-548` or `GLDS-548`
 
 * `--isaArchivePath` - specifies a local or URL path to an *ISA.zip (Default: *ISA.zip is automatically fetched from the GeneLab Repository for the GLDS dataset being processed) 
 
@@ -191,7 +187,7 @@ nextflow run NF_MAAgilent1ch_1.0.5/main.nf \
 
 * `--skipDE` - skip the differential expression analysis (Default: the differential expression analysis is performed)
 
-* `--resultsDir` - specifies the output directory for all files produced by the workflow (Default: <OSD-NNN_GLDS-NNN> if OSD and GLDS accessions are specified.  Otherwise, the workflow launch directory.)  
+* `--outdir` - specifies the base directory where the output directory will be created (Default: "${launchDir}")  
 
 <br>
 
@@ -209,17 +205,22 @@ See `nextflow run -h` and [Nextflow's CLI run command documentation](https://doc
 
 ### 4. Additional Output Files
 
-All R code steps and output are rendered within a Quarto document yielding the following:
+> [!NOTE]
+> The outputs from the Agilent 1 Channel Microarray Processing Subworkflow are documented in the [GL-DPPD-7112-A.md](../../Pipeline_GL-DPPD-7112_Versions/GL-DPPD-7112-A.md) processing protocol.
+
+Additional outputs are described below:
 
    - Output:
-     - NF_MAAgilent1ch_1.0.5.html (html report containing executed code and output including QA plots)
-  
+     - NF_MAAgilent1ch_1.0.5_GLmicroarray.html (html report containing executed R code and output including QA plots rendered by Quarto)
+     - protocol_GLmicroarray.txt  (text file describing the processing methods used by the workflow)
+     - software_versions_GLmicroarray.md (version capturing file for all tools and packages used in the workflow)
+
 
 The outputs from the Analysis Staging and V&V Pipeline Subworkflows are described below:
-> Note: The outputs from the Agilent 1 Channel Microarray Processing Subworkflow are documented in the [GL-DPPD-7112-A.md](../../Pipeline_GL-DPPD-7112_Versions/GL-DPPD-7112-A.md) processing protocol.
 
 **Analysis Staging Subworkflow**
-> Note: only applicable for [Approach 1](#3a-approach-1-run-the-workflow-on-a-genelab-agilent-1-channel-microarray-dataset) and [Approach 3](#3c-approach-3-run-the-workflow-using-an-isa-archive)
+> [!NOTE]
+> only applicable for [Approach 1](#3a-approach-1-run-the-workflow-on-a-genelab-agilent-1-channel-microarray-dataset) and [Approach 3](#3c-approach-3-run-the-workflow-using-an-isa-archive)
 
    - Output:
      - \*_microarray_v1_runsheet.csv (table containing metadata required for processing, including the raw reads files location)
@@ -234,7 +235,7 @@ The outputs from the Analysis Staging and V&V Pipeline Subworkflows are describe
 <br>
 
 Standard Nextflow resource usage logs are also produced as follows:
-> Further details about these logs can also found in the [Nextflow Report Documentation](https://docs.seqera.io/nextflow/reports).
+> Further details about these logs can also be found in the [Nextflow Report Documentation](https://docs.seqera.io/nextflow/reports).
 
 **Nextflow Resource Usage Logs**
    - Output:

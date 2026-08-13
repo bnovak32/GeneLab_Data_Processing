@@ -2,13 +2,13 @@
 
 ## Description
 
-* If using custom gene annotations when processing Agilent 1-channel datasets through GeneLab's Agilent 1-channel processing pipeline, a csv config file must be provided as specified below.
-* See [config.csv](config.csv) for the latest config file used at GeneLab.
+* If using custom gene annotations when processing Agilent 1-channel datasets through GeneLab's Agilent 1-channel processing pipeline, a CSV design information file must be provided as specified below.
+* See [design_info.csv](design_info.csv) for the latest design information file used at GeneLab.
 
 
 ## Example
 
-- [config.csv](config.csv)
+- [design_info.csv](design_info.csv)
 
 
 ## Required columns
@@ -20,10 +20,11 @@
 | annot_filename | string | Name of the custom annotations file. | 072363_D_AA_20240521.txt |
 
 ## Optional columns 
-If the file was downloaded from a website, provide the download link used and date 
-downloaded in additional columns after the required column for traceability.
+If the file was downloaded from a website, provide the download link , download date,
+and create date (if applicable) in additional columns after the required column for traceability.
 
 | Column Name | Type | Description | Example |
 |:------------|:-----|:------------|:--------|
 | download_link | string | The URL used to retrieve the annotation file. | https://earray.chem.agilent.com/earray/array/displayViewArrayDesign.do?eArrayAction=view&arraydesignid=ADID40392 | 
 | download_date | date string | The date the file was retrieved in YYYY-MM-DD format. | 2024-11-15 |
+| create_date | date string | The date the file was created in YYYY-MM-DD format. | 2024-05-21 |

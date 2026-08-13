@@ -586,7 +586,7 @@ if (organism %in% c("athaliana")) {
     }
 
     if (annot_type == 'agilent') {
-      message(glue::glue("Using Agilent Ensembl transcript annotation, resolved to genes via Ensembl FTP mart dump"))
+      print(glue::glue("Using Agilent Ensembl transcript annotation, resolved to genes via Ensembl FTP mart dump"))
 
       # read in AllAnnotations file and strip version off of Ensembl Transcript ID
       agilent_table <- read.delim(

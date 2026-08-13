@@ -9,19 +9,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Support for custom annotations, see [specification](examples/annotations/README.md)
+- Add support for custom annotations, see [specification](examples/annotations/README.md)
 - Add option to skip differential expression analysis (`--skipDE`) ([#104](https://github.com/nasa/GeneLab_Data_Processing/issues/104))
 - Add a retry wrapper for functions that utilize internet resources, syncing with [NF_MAAffymetrix_1.0.3](https://github.com/nasa/GeneLab_Data_Processing/tree/NF_MAAffymetrix_1.0.3/Microarray/Affymetrix/Workflow_Documentation/NF_MAAffymetrix)
 - Workflow can now be run using an ISA archive by supplying parameter: 'isaArchivePath' (as either a local path or public web uri), syncing with [NF_MAAffymetrix_1.0.2](https://github.com/asaravia-butler/GeneLab_Data_Processing/tree/NF_MAAffymetrix_1.0.2/Microarray/Affymetrix/Workflow_Documentation/NF_MAAffymetrix)
-- Add conditional execution of UPDATE_ISA_TABLES that is not expected to run in runsheet mode
+- Add nextflow schema support for parameter validation and help text generation
+- Add conda support for easier local development and debugging
 
 ### Changed
 
-- Publish directory behavior reworked to use the OSD accession as part of the default name. Now uses `resultsDir` instead of `outputDir` as the parameter name when a user does control the published files directory. Syncing with [NF_MAAffymetrix_1.0.2](https://github.com/asaravia-butler/GeneLab_Data_Processing/tree/NF_MAAffymetrix_1.0.2/Microarray/Affymetrix/Workflow_Documentation/NF_MAAffymetrix)
-- Bump gl-microarray image from version 1.0.0 to 1.1.0
-- Small bug fixes in `Agile1CMP.qmd`
-  - Update the custom `fetch_organism_specific_annotation_table()` function, used when loading organism-specific annotation metadata, to convert figshare ndownloader URLs to direct API endpoints, as ndownloader URLs require redirect handling that is not supported in all programmatic download contexts
+- Replace `RUNSHEET_FROM_GLDS` and `RUNSHEET_FROM_ISA` processes and their associated workflow logic with a new staging analysis subworkflow supporting both accession-based and input-file-based execution modes
+- Rework publish directory behavior as part of the staging analysis subworkflow where `outdir` is now the base directory for `GLDS-NNN/` output directory if `--accession` is provided, or the base directory for `results/` output directory if `--runsheet` is provided
+- Bump gl-microarray image from version 1.0.0 to 1.1.0 to match R package updates in the [GL-DPPD-7112-A pipeline document](../../Pipeline_GL-DPPD-7112_Versions/GL-DPPD-7112-A.md)
+- Rename `annotation_config_path` as `array_annot_path` and `config.csv` as `design_info.csv` throughout the workflow and documentation to better reflect the purpose of the file and its contents
+- Convert `generate_protocol.sh` to a Python script for automated handling of reference/annotation parameters
+- Add `create_date` to design_info.csv and parse it in the protocol
+- Move protocol creation from post-processing to main nextflow script to make passing needed values easier and more robust
+- Rename module files from UPPERCASE.nf to lowercase.nf following Nextflow community convention
+- Flatten directory-based modules (PROCESS_NAME/ with scripts under resources/usr/bin/) to single lowercase process_name.nf files directly under modules/
+- Move process scripts from modules/PROCESS_NAME/resources/usr/bin/ to the top-level bin/ directory
+- Fixes in `Agile1CMP.qmd`
+  - Replace live biomaRt::getBM() queries in the QMD with direct downloads of Ensembl's FTP mart-dump tables; drop chunking/retry/Sys.sleep tied to those queries
   - Simplify group sample retrieval during differential expression group-wise statistics computation to use a more concise `filter/pull/sort` chain instead of `group_by/summarize/filter/pull`, addressing the deprecation warning in dplyr >= 1.1.0 where returning more than 1 row per `summarise()` group is deprecated
+- Changes to post-processing workflow
+  - Resolve output directory `GLDS-NNN/` or `results/` to match main workflow behavior
+  - Replace dp_tools dependency in assay table update and md5sum table generation with standalone scripts
+  - Rename `UPDATE_ISA_TABLES` and `update_curation_table.py` to `UPDATE_ASSAY_TABLE` and `update_assay_table.py` to better reflect their purpose
+  - Add new PURGE_PROCESSING_INFO Nextflow module to strip full paths in nextflow_processing_info_GLmicroarray.txt before publishing
+  - Add parameter validation and summary log from nf-schema
+
+### Removed
+
+- Packages `R.utils`, `purrr`, and `biomaRt` are no longer used in the processing code, and have been removed from software table generation
 
 ## [1.0.4](https://github.com/nasa/GeneLab_Data_Processing/tree/NF_MAAgilent1ch_1.0.4/Microarray/Agilent_1-channel/Workflow_Documentation/NF_MAAgilent1ch) - 2024-10-02
 
