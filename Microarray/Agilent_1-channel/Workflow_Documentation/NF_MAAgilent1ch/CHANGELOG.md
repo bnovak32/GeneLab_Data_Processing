@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.5](https://github.com/nasa/GeneLab_Data_Processing/tree/NF_MAAgilent1ch_1.0.5/Microarray/Agilent_1-channel/Workflow_Documentation/NF_MAAgilent1ch) - 2025-05-xx
+## [1.0.5](https://github.com/nasa/GeneLab_Data_Processing/tree/NF_MAAgilent1ch_1.0.5/Microarray/Agilent_1-channel/Workflow_Documentation/NF_MAAgilent1ch) - 2026-05-xx
 
 ### Added
 
@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Workflow can now be run using an ISA archive by supplying parameter: 'isaArchivePath' (as either a local path or public web uri), syncing with [NF_MAAffymetrix_1.0.2](https://github.com/asaravia-butler/GeneLab_Data_Processing/tree/NF_MAAffymetrix_1.0.2/Microarray/Affymetrix/Workflow_Documentation/NF_MAAffymetrix)
 - Add nextflow schema support for parameter validation and help text generation
 - Add conda support for easier local development and debugging
+- Add cache-first loading of Ensembl FTP mart-dump tables via `--mart_cache_dir` (default: `${launchDir}/ensembl_mart_dumps`); create the cache directory if missing, check write access, and retain downloaded tables in release-specific subdirectories for reuse across runs
 
 ### Changed
 
@@ -37,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Rename `UPDATE_ISA_TABLES` and `update_curation_table.py` to `UPDATE_ASSAY_TABLE` and `update_assay_table.py` to better reflect their purpose
   - Add new PURGE_PROCESSING_INFO Nextflow module to strip full paths in nextflow_processing_info_GLmicroarray.txt before publishing
   - Add parameter validation and summary log from nf-schema
+- Update workflow (main and post-processing) and subworkflow code for Nextflow strict syntax: move top-level assignments into workflow bodies, declare the shared completion-log variable explicitly, replace implicit closure parameters, and remove or mark unused bindings
 
 ### Removed
 

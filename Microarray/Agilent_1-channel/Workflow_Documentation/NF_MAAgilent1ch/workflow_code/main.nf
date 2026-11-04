@@ -12,14 +12,6 @@ include { GENERATE_SOFTWARE_TABLE } from './modules/generate_software_table.nf'
 include { DUMP_META } from './modules/dump_meta.nf'
 include { GENERATE_PROTOCOL } from './modules/generate_protocol.nf'
 
-ch_dp_tools_plugin = params.dp_tools_plugin ? 
-  channel.value(file(params.dp_tools_plugin)) 
-  : params.skipDE ? channel.value(file("$projectDir/bin/dp_tools__agilent_1_channel_skipDE")) : channel.value(file("$projectDir/bin/dp_tools__agilent_1_channel"))
-ch_isa_archive_path = params.isaArchivePath ? file(params.isaArchivePath) : null
-ch_runsheet = params.runsheetPath ? channel.fromPath(params.runsheetPath) : null
-
-ch_outdir = params.outdir ? channel.fromPath(params.outdir, checkIfExists: true) : null
-
 workflow {
 	main:
 
@@ -33,18 +25,18 @@ workflow {
     **************************************************/
     if ( params.help ) {
       before_text = """
-************************************************
-* Microarray Agilent 1 Channel Pipeline: ${workflow.manifest.version} *
-************************************************
+      ************************************************
+      * Microarray Agilent 1 Channel Pipeline: ${workflow.manifest.version} *
+      ************************************************
 
-Usage example 1: Processing OSDR datasets
-    > nextflow run ./main.nf --accession OSD-548
+      Usage example 1: Processing OSDR datasets
+          > nextflow run ./main.nf --accession OSD-548
 
-Usage example 2: Processing Other datasets (requires a user-created runsheet)
-    > nextflow run ./main.nf --runsheetPath </path/to/runsheet>
+      Usage example 2: Processing Other datasets (requires a user-created runsheet)
+          > nextflow run ./main.nf --runsheetPath </path/to/runsheet>
 
 
-"""
+      """
       log.info paramsHelp(
         beforeText: before_text, 
         afterText: "For more information, please see the README.md file in the workflow code directory.",
@@ -55,6 +47,14 @@ Usage example 2: Processing Other datasets (requires a user-created runsheet)
     // validate parameters and print parameter summary log (includes only parameters that are not set to default values)
     validateParameters(cast_cli_params: true)
     log.info paramsSummaryLog(workflow)
+
+    ch_dp_tools_plugin = params.dp_tools_plugin ? 
+      channel.value(file(params.dp_tools_plugin)) 
+      : params.skipDE ? channel.value(file("$projectDir/bin/dp_tools__agilent_1_channel_skipDE")) : channel.value(file("$projectDir/bin/dp_tools__agilent_1_channel"))
+    ch_isa_archive_path = params.isaArchivePath ? file(params.isaArchivePath) : null
+    ch_runsheet = params.runsheetPath ? channel.fromPath(params.runsheetPath) : null
+
+    ch_outdir = params.outdir ? channel.fromPath(params.outdir, checkIfExists: true) : null
    
     //  ---------------------  Sanity Checks ------------------------------------- //
     // Test input requirement
@@ -83,23 +83,27 @@ Usage example 2: Processing Other datasets (requires a user-created runsheet)
     )
     ch_outdir = STAGE_ANALYSIS.out.ch_outdir
     samples = STAGE_ANALYSIS.out.samples
-    array_data_files = STAGE_ANALYSIS.out.array_data_files | map { meta, f -> f } | collect
+    array_data_files = STAGE_ANALYSIS.out.array_data_files | map { _meta, f -> f } | collect
     runsheet_path = STAGE_ANALYSIS.out.runsheet_path
-    isa_archive = STAGE_ANALYSIS.out.isa_archive
-    osd_accession = STAGE_ANALYSIS.out.osd_accession
-    glds_accession = STAGE_ANALYSIS.out.glds_accession
     dp_tools_version = STAGE_ANALYSIS.out.dp_tools_version
     
     // Get dataset-wide metadata
     samples | first 
-            | map { meta, reads -> meta }
+            | map { meta, _reads -> meta }
             | set { ch_meta }
 
     ch_meta | map { meta -> meta.organism_sci }
             | set { organism_sci }
 
 
-  PARSE_ANNOTATION_TABLE(params.annotation_file_path, organism_sci)
+    PARSE_ANNOTATION_TABLE(params.annotation_file_path, organism_sci)
+
+    def mart_cache_dir = file(params.mart_cache_dir).toAbsolutePath().normalize()
+    java.nio.file.Files.createDirectories(mart_cache_dir)
+
+    if (!java.nio.file.Files.isWritable(mart_cache_dir)) {
+        error "Mart cache directory is not writable: ${mart_cache_dir}"
+    }
 
     PROCESS_AGILE1CH(
       ch_outdir,
@@ -110,6 +114,7 @@ Usage example 2: Processing Other datasets (requires a user-created runsheet)
       PARSE_ANNOTATION_TABLE.out.reference_version_and_source,
       channel.fromPath( params.referenceStorePath ),
       channel.fromPath( params.array_annot_path ),
+      mart_cache_dir.toString(),
       params.skipDE
     )
 
@@ -160,7 +165,8 @@ Usage example 2: Processing Other datasets (requires a user-created runsheet)
       params.skipDE
     )
 
-  ch_outdir.subscribe { outdir_value = it }
+  outdir_value = null
+  ch_outdir.subscribe { outdir ->outdir_value = outdir }
   workflow.onComplete = { 
     println "${c_bright_green}Pipeline completed at: $workflow.complete"
     println "Execution status: ${ workflow.success ? 'OK' : 'failed' }"

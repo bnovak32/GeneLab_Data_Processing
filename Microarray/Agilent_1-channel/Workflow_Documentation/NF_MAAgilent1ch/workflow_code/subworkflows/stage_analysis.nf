@@ -32,12 +32,12 @@ workflow STAGE_ANALYSIS {
         
         if ( accession ) {
             GET_ACCESSIONS( accession, api_url )
-            osd_accession = GET_ACCESSIONS.out.accessions_txt.map { it.readLines()[0].trim() }
-            glds_accession = GET_ACCESSIONS.out.accessions_txt.map { it.readLines()[1].trim() }
+            osd_accession = GET_ACCESSIONS.out.accessions_txt.map { txt -> txt.readLines()[0].trim() }
+            glds_accession = GET_ACCESSIONS.out.accessions_txt.map { txt -> txt.readLines()[1].trim() }
             ch_outdir = ch_outdir.combine(glds_accession).map { outdir, glds -> "$outdir/$glds" }
         }
         else {
-            ch_outdir = ch_outdir.map { it + "/results" }
+            ch_outdir = ch_outdir.map { dir -> dir + "/results" }
         }
         ch_outdir = ch_outdir.first()
         

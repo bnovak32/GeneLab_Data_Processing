@@ -22,6 +22,7 @@ params:
   ensembl_version: NULL # str, Used to determine ensembl version
   local_annotation_dir: NULL
   array_annot_path: NULL
+  mart_cache_dir: NULL # str, directory of cached Ensembl mart-dump *.txt.gz files; checked before any FTP download
   run_DE: 'true'
 ---
 
@@ -427,17 +428,41 @@ resolve_mart_ftp_base <- function(division, organism, ensembl_version, ensembl_g
 }
 
 download_mart_dump <- function(url, col_names = NULL) {
-  #' Download and load a single gzipped, tab-separated, headerless Ensembl "mart dump" table
+  #' Load a gzipped, tab-separated, headerless Ensembl "mart dump" table.
+  #' Cache-first: if params$mart_cache_dir holds <mart_dir>/<file>, use it (no download);
+  #' otherwise download from Ensembl FTP and keep the copy in the cache for next time.
 
-  options(timeout = 300) # Can be further increased for downloading large files
-  print(glue::glue("Mart dump URL: {url}"))
+  cache_dir <- params$mart_cache_dir
+  use_cache <- !is.null(cache_dir) && nzchar(cache_dir)
 
-  temp_file <- tempfile(fileext = ".gz")
-  download.file(url = url, destfile = temp_file, method = "libcurl") # libcurl needed for ftp(s) URLs
+  # Cache layout mirrors the FTP layout, e.g.
+  #   <cache_dir>/ensembl_mart_112/hsapiens_gene_ensembl__transcript__main.txt.gz
+  #   <cache_dir>/plants_mart_58/athaliana_eg_gene__efg_agilent_g2519f_015059__dm.txt.gz
+  # so different Ensembl releases of the same dataset never collide.
+  local_file <- if (use_cache) {
+    file.path(cache_dir, basename(dirname(url)), basename(url))
+  } else {
+    tempfile(fileext = ".gz")
+  }
 
-  mapping <- read.table(gzfile(temp_file), header = FALSE, sep = "\t", quote = "", comment.char = "")
+  if (file.exists(local_file) && file.info(local_file)$size > 0) {
+    print(glue::glue("Using cached mart dump: {local_file}"))
+  } else {
+    options(timeout = 300) # Can be further increased for downloading large files
+    print(glue::glue("Mart dump URL: {url}"))
+    dir.create(dirname(local_file), recursive = TRUE, showWarnings = FALSE)
+
+    # Download to a temp file in the SAME directory, rename only on success:
+    # a failed download never leaves a broken file in the cache, and the rename is atomic.
+    tmp <- tempfile(tmpdir = dirname(local_file), fileext = ".partial")
+    download.file(url = url, destfile = tmp, method = "libcurl", mode = "wb") # libcurl needed for ftp(s) URLs
+    file.rename(tmp, local_file)
+  }
+
+  mapping <- read.table(gzfile(local_file), header = FALSE, sep = "\t", quote = "", comment.char = "")
   if (!is.null(col_names)) colnames(mapping)[seq_along(col_names)] <- col_names
-  unlink(temp_file)
+  
+  if (!use_cache) unlink(local_file) # No cache configured: discard as before
   return(mapping)
 }
 

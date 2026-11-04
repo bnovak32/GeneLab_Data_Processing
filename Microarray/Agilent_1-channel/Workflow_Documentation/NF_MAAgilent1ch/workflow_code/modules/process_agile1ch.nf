@@ -13,6 +13,7 @@ process PROCESS_AGILE1CH {
     tuple val(ensemblVersion), val(ensemblSource)
     path(referenceStorePath) // path to custom annotation references
     path(array_annot_path) // path to custom probe design info file
+    val(mart_cache_dir) // path to cached Ensembl mart-dump tables
     val(skipDE) // whether to skip DE
 
   output:
@@ -36,6 +37,7 @@ process PROCESS_AGILE1CH {
             -P 'ensembl_version:${ensemblVersion}' \
             -P 'local_annotation_dir:${referenceStorePath}' \
             -P 'array_annot_path:${array_annot_path}' \
+            -P 'mart_cache_dir:${mart_cache_dir}' \
             ${run_DE}
 
         # Rename report

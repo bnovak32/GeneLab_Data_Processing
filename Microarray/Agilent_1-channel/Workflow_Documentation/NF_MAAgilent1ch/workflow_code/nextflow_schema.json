@@ -76,6 +76,11 @@
                     "default": "../../examples/annotations/design_info.csv",
                     "description": "custom array annotation design info file"
                 },
+                "mart_cache_dir": {
+                    "type": "string",
+                    "default": "${launchDir}/ensembl_mart_dumps",
+                    "description": "Cached Ensembl mart-dump tables; checked before falling back to Ensembl FTP. Absolute path, must be writable."
+                },
                 "max_flag_code": {
                     "type": "integer",
                     "default": 80,

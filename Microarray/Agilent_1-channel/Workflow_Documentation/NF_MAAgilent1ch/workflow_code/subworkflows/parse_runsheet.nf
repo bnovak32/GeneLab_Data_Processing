@@ -1,11 +1,3 @@
-def colorCodes = [
-    c_line: "┅" * 70,
-    c_back_bright_red: "\u001b[41;1m",
-    c_bright_green: "\u001b[32;1m",
-    c_blue: "\033[0;34m",
-    c_yellow: "\u001b[33;1m",
-    c_reset: "\033[0m"
-]
 // Adapted from Function: https://github.com/nf-core/rnaseq/blob/master/modules/local/process/samplesheet_check.nf
 // Function to get list of [ meta, data_file ]
 def get_runsheet_paths(LinkedHashMap row) {
@@ -15,7 +7,7 @@ def get_runsheet_paths(LinkedHashMap row) {
     meta.organism_sci = row.organism.replaceAll(" ","_").toLowerCase()
     
     // Extract factors
-    meta.factors = row.findAll { key, value -> 
+    meta.factors = row.findAll { key, _value -> 
         key.startsWith("Factor Value[") && key.endsWith("]")
     }.collectEntries { key, value ->
         [(key[13..-2]): value] // Remove "Factor Value[" and "]"
@@ -36,6 +28,14 @@ workflow PARSE_RUNSHEET {
         runsheet_path
     
     main:
+        def colorCodes = [
+            c_line: "┅" * 70,
+            c_back_bright_red: "\u001b[41;1m",
+            c_bright_green: "\u001b[32;1m",
+            c_blue: "\033[0;34m",
+            c_yellow: "\u001b[33;1m",
+            c_reset: "\033[0m"
+        ]
         // Process samples from the runsheet
         ch_samples = runsheet_path
             | splitCsv(header: true)
@@ -45,7 +45,7 @@ workflow PARSE_RUNSHEET {
 
         // Validate consistency across samples
         ch_samples
-            .map { meta, data_file -> [meta.biomart_id, meta.organism_sci] }
+            .map { meta, _data_file -> [meta.biomart_id, meta.organism_sci] }
             .unique()
             .count()
             .subscribe { count ->
@@ -58,7 +58,7 @@ workflow PARSE_RUNSHEET {
             }
 
         // Print autodetected processing metadata for the first sample
-        ch_samples.take(1) | view { meta, data_file -> 
+        ch_samples.take(1) | view { meta, _data_file -> 
             """${colorCodes.c_bright_green}Autodetected Processing Metadata:
             Biomart Attribute: ${meta.biomart_id}
             Organism: ${meta.organism_sci}${colorCodes.c_reset}"""
@@ -66,7 +66,7 @@ workflow PARSE_RUNSHEET {
 
         // Check that all read files are unique
         ch_samples
-            .map { meta, data_file -> meta.file_name }
+            .map { meta, _data_file -> meta.file_name }
             .collect()
             .map { all_names ->
                 if (all_names.toSet().size() != all_names.size()) {
@@ -76,7 +76,7 @@ workflow PARSE_RUNSHEET {
         }
             }
         ch_samples
-            .map { meta, data_file -> data_file }
+            .map { _meta, data_file -> data_file }
             .collect()
             .map { all_data_files ->                
                 if (all_data_files.toSet().size() != all_data_files.size()) {

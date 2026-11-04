@@ -189,6 +189,11 @@ nextflow run NF_MAAgilent1ch_1.0.5/main.nf \
 
 * `--outdir` - specifies the base directory where the output directory will be created (Default: "${launchDir}")  
 
+* `--mart_cache_dir` - specifies the directory for cached Ensembl FTP mart-dump tables (Default: `${launchDir}/ensembl_mart_dumps`)
+
+> [!NOTE]
+> The workflow creates the mart cache directory if it does not exist and checks that it is writable. Existing, non-empty dump files are reused; missing dumps are downloaded and retained in release-specific subdirectories, reducing repeated downloads across runs. Set `--mart_cache_dir /absolute/path/to/ensembl_mart_dumps` to share a cache between runs launched from different directories. The cache is accessed directly rather than copied into each task. For cluster or container execution, ensure that the directory is accessible and writable on compute nodes and, when applicable, mounted at the same absolute path inside the container.
+
 <br>
 
 All parameters listed above and additional optional arguments for the NF_MAAgilent1ch workflow, including debug related options that may not be immediately useful for most users, can be viewed by running the following command:
