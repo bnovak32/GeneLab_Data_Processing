@@ -61,8 +61,8 @@ workflow {
     channel
         .fromPath(params.sample_id_list)
         .splitText()
-        .map { it.trim() }
-        .filter { it } //Ignore blank lines
+        .map { txt -> txt.trim() }
+        .filter { txt -> txt } //Ignore blank lines
         .map { sample_id ->
             def meta = [id: sample_id, paired_end: !params.is_single]
                 
@@ -89,11 +89,11 @@ workflow {
     nextflow_version_ch = channel.value(nf_version)
 
     //  Write software versions to file
-    software_versions_ch | filter { it }
-                         | map { it -> it.text.strip() }
+    software_versions_ch | filter { version -> version }
+                         | map { version -> version.text.strip() }
                          | unique
                          | mix(nextflow_version_ch)
-                         | collectFile({it -> it}, newLine: true, cache: false)
+                         | collectFile({versions -> versions}, newLine: true, cache: false)
                          | SOFTWARE_VERSIONS
     
     protocol_out = GENERATE_PROTOCOL(

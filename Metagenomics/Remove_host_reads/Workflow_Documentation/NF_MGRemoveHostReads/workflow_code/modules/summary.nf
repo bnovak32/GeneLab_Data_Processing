@@ -24,7 +24,6 @@ process SUMMARY {
 process COMPILE_SUMMARY {
 
     tag "Generating summary statistics..."
-    beforeScript "chmod +x ${projectDir}/bin/*"
 
     input:
     path summary_tmp_files
