@@ -187,12 +187,11 @@ nextflow run NF_MAAgilent1ch_1.0.5/main.nf \
 
 * `--skipDE` - skip the differential expression analysis (Default: the differential expression analysis is performed)
 
-* `--outdir` - specifies the base directory where the output directory will be created (Default: "${launchDir}")  
+* `--outdir` - specifies the base directory where the output directory will be created (Default: "${launchDir}")
+  > Note: The output directory will be named `GLDS-#` when using a OSD or GLDS accession as input, or `results` when running the workflow with only a runsheet as input.
 
 * `--mart_cache_dir` - specifies the directory for cached Ensembl FTP mart-dump tables (Default: `${launchDir}/ensembl_mart_dumps`)
-
-> [!NOTE]
-> The workflow creates the mart cache directory if it does not exist and checks that it is writable. Existing, non-empty dump files are reused; missing dumps are downloaded and retained in release-specific subdirectories, reducing repeated downloads across runs. Set `--mart_cache_dir /absolute/path/to/ensembl_mart_dumps` to share a cache between runs launched from different directories. The cache is accessed directly rather than copied into each task. For cluster or container execution, ensure that the directory is accessible and writable on compute nodes and, when applicable, mounted at the same absolute path inside the container.
+  > Note: The workflow creates the mart cache directory if it does not exist and checks that it is writable. Existing, non-empty dump files are reused; missing dumps are downloaded and retained in release-specific subdirectories, reducing repeated downloads across runs. Set `--mart_cache_dir /absolute/path/to/ensembl_mart_dumps` to share a cache between runs launched from different directories. The cache is accessed directly rather than copied into each task. For cluster or container execution, ensure that the directory is accessible and writable on compute nodes and, when applicable, mounted at the same absolute path inside the container.
 
 <br>
 
